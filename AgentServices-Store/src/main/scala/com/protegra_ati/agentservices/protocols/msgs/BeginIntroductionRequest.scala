@@ -1,4 +1,4 @@
-package com.protegra_ati.agentservices.protocols
+package com.protegra_ati.agentservices.protocols.msgs
 
 import com.biosimilarity.evaluator.distribution.diesel.DieselEngineScope._
 
@@ -15,15 +15,4 @@ case class BeginIntroductionRequest(
   extends ProtocolRequestMessage {
 
   def this() = this(None, None, None, None, None, None, None, None)
-}
-
-case class BeginIntroductionResponse(
-  override val responseId: String,
-  accepted: Option[Boolean],
-  aRejectReason: Option[String],
-  bRejectReason: Option[String])
-
-  extends ProtocolResponseMessage {
-
-  def this(responseId: String) = this(responseId, None, None, None)
 }

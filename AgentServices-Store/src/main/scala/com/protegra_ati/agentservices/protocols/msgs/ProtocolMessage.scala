@@ -1,4 +1,4 @@
-package com.protegra_ati.agentservices.protocols
+package com.protegra_ati.agentservices.protocols.msgs
 
 import com.biosimilarity.evaluator.distribution.ConcreteHL
 import com.biosimilarity.evaluator.distribution.diesel.DieselEngineScope._
@@ -16,15 +16,4 @@ trait ProtocolMessage {
   def toGround: mTT.Ground = {
     mTT.Ground(ConcreteHL.InsertContent(label, Nil, this))
   }
-}
-
-trait ProtocolRequestMessage extends ProtocolMessage {
-  val requestId: Option[String]
-  val responseCnxn: Option[acT.AgentCnxn]
-}
-
-trait ProtocolResponseMessage extends ProtocolMessage {
-  val responseId: String
-
-  override val innerLabel = "responseId(\"" + responseId + "\")"
 }

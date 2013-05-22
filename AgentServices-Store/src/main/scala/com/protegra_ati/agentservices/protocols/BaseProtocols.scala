@@ -2,8 +2,10 @@ package com.protegra_ati.agentservices.protocols
 
 import com.biosimilarity.evaluator.distribution.ConcreteHL
 import com.biosimilarity.evaluator.distribution.diesel.DieselEngineScope._
+import com.protegra_ati.agentservices.protocols.msgs._
 import java.net.URI
 import java.util.UUID
+import scala.Some
 import scala.util.continuations._
 
 trait BaseProtocols {

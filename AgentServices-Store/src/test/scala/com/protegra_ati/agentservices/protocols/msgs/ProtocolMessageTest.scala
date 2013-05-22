@@ -1,6 +1,5 @@
-package com.protegra_ati.agentservices.store.dsl.protocols
+package com.protegra_ati.agentservices.protocols.msgs
 
-import com.protegra_ati.agentservices.protocols._
 import com.protegra_ati.agentservices.store.extensions.StringExtensions._
 import java.util.UUID
 import org.specs2.mutable.SpecificationWithJUnit
