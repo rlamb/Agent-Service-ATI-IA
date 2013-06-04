@@ -4,8 +4,8 @@ import com.biosimilarity.evaluator.distribution.ConcreteHL
 
 case class Connect(
   connectId: String,
-  requestCnxn: Option[ConcreteHL.PortableAgentCnxn],
-  responseCnxn: Option[ConcreteHL.PortableAgentCnxn])
+  writeCnxn: Option[ConcreteHL.PortableAgentCnxn],
+  readCnxn: Option[ConcreteHL.PortableAgentCnxn])
 
   extends ProtocolMessage {
 

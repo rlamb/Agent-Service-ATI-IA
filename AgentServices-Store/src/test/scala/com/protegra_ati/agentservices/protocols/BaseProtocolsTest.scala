@@ -12,7 +12,7 @@ import scala.concurrent._
 import scala.concurrent.duration._
 import scala.util.continuations._
 
-class ConcreteBaseProtocols extends BaseProtocols
+class ConcreteBaseProtocols extends BaseProtocols2
 
 class BaseProtocolsTest extends SpecificationWithJUnit with Tags {
   class Setup extends Scope {
