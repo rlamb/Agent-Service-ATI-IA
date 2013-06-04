@@ -1,10 +1,10 @@
 package com.protegra_ati.agentservices.protocols.msgs
 
-import com.biosimilarity.evaluator.distribution.diesel.DieselEngineScope._
+import com.biosimilarity.evaluator.distribution.ConcreteHL
 
 case class IntroductionRequest(
   override val requestId: Option[String],
-  override val responseCnxn: Option[acT.AgentCnxn],
+  override val responseCnxn: Option[ConcreteHL.PortableAgentCnxn],
   message: Option[String])
 
   extends ProtocolRequestMessage {

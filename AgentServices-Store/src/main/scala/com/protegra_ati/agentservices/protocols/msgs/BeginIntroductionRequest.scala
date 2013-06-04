@@ -1,14 +1,14 @@
 package com.protegra_ati.agentservices.protocols.msgs
 
-import com.biosimilarity.evaluator.distribution.diesel.DieselEngineScope._
+import com.biosimilarity.evaluator.distribution.ConcreteHL
 
 case class BeginIntroductionRequest(
   override val requestId: Option[String],
-  override val responseCnxn: Option[acT.AgentCnxn],
-  aRequestCnxn: Option[acT.AgentCnxn],
-  aResponseCnxn: Option[acT.AgentCnxn],
-  bRequestCnxn: Option[acT.AgentCnxn],
-  bResponseCnxn: Option[acT.AgentCnxn],
+  override val responseCnxn: Option[ConcreteHL.PortableAgentCnxn],
+  aRequestCnxn: Option[ConcreteHL.PortableAgentCnxn],
+  aResponseCnxn: Option[ConcreteHL.PortableAgentCnxn],
+  bRequestCnxn: Option[ConcreteHL.PortableAgentCnxn],
+  bResponseCnxn: Option[ConcreteHL.PortableAgentCnxn],
   aMessage: Option[String],
   bMessage: Option[String])
 

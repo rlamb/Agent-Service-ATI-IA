@@ -5,146 +5,110 @@ import com.biosimilarity.evaluator.distribution.diesel.DieselEngineScope._
 import com.protegra_ati.agentservices.protocols.msgs._
 import java.net.URI
 import java.util.UUID
-import scala.Some
 import scala.util.continuations._
 
 trait BaseProtocols {
   def genericIntroducer(
     kvdbNode: Being.AgentKVDBNode[PersistedKVDBNodeRequest, PersistedKVDBNodeResponse],
-    cnxn: acT.AgentCnxn) {
+    cnxn: ConcreteHL.PortableAgentCnxn): Unit = {
 
+    genericIntroducer(new KVDBNodeWrapper(kvdbNode), cnxn)
+  }
+
+  def genericIntroducer(node: NodeWrapper, cnxn: ConcreteHL.PortableAgentCnxn): Unit = {
     reset {
       // listen for BeginIntroductionRequest message
-      for (birq <- kvdbNode.get(cnxn)(new BeginIntroductionRequest().toCnxnCtxtLabel)) {
-
-        birq match {
-          case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, BeginIntroductionRequest(
-            Some(biRqId),
-            Some(biRspCnxn),
-            Some(aRqCnxn),
-            Some(aRspCnxn),
-            Some(bRqCnxn),
-            Some(bRspCnxn),
-            aMessage,
-            bMessage)))) => {
+      for (e <- node.get(cnxn)(new BeginIntroductionRequest())) {
+        e match {
+          case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, biRq: BeginIntroductionRequest))) => {
+            // TODO: Validate biRq
 
             // create GetIntroductionProfileRequest messages
-            val aGetIntroProfileRq = new GetIntroductionProfileRequest(Some(UUID.randomUUID.toString), Some(aRspCnxn))
-            val bGetIntroProfileRq = new GetIntroductionProfileRequest(Some(UUID.randomUUID.toString), Some(bRspCnxn))
+            val aGetIntroProfileRq = new GetIntroductionProfileRequest(Some(UUID.randomUUID.toString), biRq.aResponseCnxn)
+            val bGetIntroProfileRq = new GetIntroductionProfileRequest(Some(UUID.randomUUID.toString), biRq.bResponseCnxn)
 
             // send GetIntroductionProfileRequest messages
-            reset { kvdbNode.put(aRqCnxn)(aGetIntroProfileRq.toCnxnCtxtLabel, aGetIntroProfileRq.toGround) }
-            reset { kvdbNode.put(bRqCnxn)(bGetIntroProfileRq.toCnxnCtxtLabel, bGetIntroProfileRq.toGround) }
+            node.put(biRq.aRequestCnxn.get)(aGetIntroProfileRq)
+            node.put(biRq.bRequestCnxn.get)(bGetIntroProfileRq)
 
             reset {
               // listen for GetIntroductionProfileResponse messages
               // TODO: TTL
               for (
-                agiprsp <- kvdbNode.get
-                  (aRspCnxn)
-                  (new GetIntroductionProfileResponse(aGetIntroProfileRq.requestId.get).toCnxnCtxtLabel);
-                bgiprsp <- kvdbNode.get
-                  (bRspCnxn)
-                  (new GetIntroductionProfileResponse(bGetIntroProfileRq.requestId.get).toCnxnCtxtLabel)) {
+                f <- node.get(biRq.aResponseCnxn.get)(new GetIntroductionProfileResponse(aGetIntroProfileRq.requestId.get));
+                g <- node.get(biRq.bResponseCnxn.get)(new GetIntroductionProfileResponse(bGetIntroProfileRq.requestId.get))) {
 
-                // match response from A
-                // TODO: Get introduction profile from message
-                agiprsp match {
-                  case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, GetIntroductionProfileResponse(_)))) => {
+                (f, g) match {
+                  case (Some(mTT.Ground(ConcreteHL.InsertContent(_, _, agipRsp: GetIntroductionProfileResponse))),
+                        Some(mTT.Ground(ConcreteHL.InsertContent(_, _, bgipRsp: GetIntroductionProfileResponse)))) => {
 
-                    // match response from B
-                    // TODO: Get introduction profile from message
-                    bgiprsp match {
-                      case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, GetIntroductionProfileResponse(_)))) => {
+                    // TODO: Validate agipRsp
+                    // TODO: Validate bgipRsp
 
-                        // create IntroductionRequest messages
-                        // TODO: Add introduction profiles to messages
-                        val aIntroRq = new IntroductionRequest(Some(UUID.randomUUID.toString), Some(aRspCnxn), aMessage)
-                        val bIntroRq = new IntroductionRequest(Some(UUID.randomUUID.toString), Some(bRspCnxn), bMessage)
+                    // create IntroductionRequest messages
+                    // TODO: Add introduction profiles to messages
+                    val aIntroRq = new IntroductionRequest(Some(UUID.randomUUID.toString), biRq.aResponseCnxn, biRq.aMessage)
+                    val bIntroRq = new IntroductionRequest(Some(UUID.randomUUID.toString), biRq.bResponseCnxn, biRq.bMessage)
 
-                        // send IntroductionRequest messages
-                        reset { kvdbNode.put(aRqCnxn)(aIntroRq.toCnxnCtxtLabel, aIntroRq.toGround) }
-                        reset { kvdbNode.put(bRqCnxn)(bIntroRq.toCnxnCtxtLabel, bIntroRq.toGround) }
+                    // send IntroductionRequest messages
+                    node.put(biRq.aRequestCnxn.get)(aIntroRq)
+                    node.put(biRq.bRequestCnxn.get)(bIntroRq)
 
-                        reset {
-                          // listen for IntroductionResponse messages
-                          // TODO: TTL
-                          // TODO: Find a way to stop if either party rejects
-                          for (
-                            airsp <- kvdbNode.get
-                              (aRspCnxn)
-                              (new IntroductionResponse(aIntroRq.requestId.get).toCnxnCtxtLabel);
-                            birsp <- kvdbNode.get
-                              (bRspCnxn)
-                              (new IntroductionResponse(bIntroRq.requestId.get).toCnxnCtxtLabel)) {
+                    reset {
+                      // listen for IntroductionResponse messages
+                      // TODO: TTL
+                      // TODO: Find a way to stop if either party rejects
+                      for (
+                        h <- node.get(biRq.aResponseCnxn.get)(new IntroductionResponse(aIntroRq.requestId.get));
+                        i <- node.get(biRq.bResponseCnxn.get)(new IntroductionResponse(bIntroRq.requestId.get))) {
 
-                            // match response from A
-                            airsp match {
-                              case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, IntroductionResponse(
-                                _,
-                                Some(aAccepted),
-                                aRejectReason,
-                                Some(aConnectId))))) => {
+                        (h, i) match {
+                          case (Some(mTT.Ground(ConcreteHL.InsertContent(_, _, aiRsp: IntroductionResponse))),
+                                Some(mTT.Ground(ConcreteHL.InsertContent(_, _, biRsp: IntroductionResponse)))) => {
 
-                                // match response from B
-                                birsp match {
-                                  case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, IntroductionResponse(
-                                    _,
-                                    Some(bAccepted),
-                                    bRejectReason,
-                                    Some(bConnectId))))) => {
+                            // TODO: Validate aiRsp
+                            // TODO: Validate biRsp
 
-                                    // create BeginIntroductionResponse message
-                                    val beginIntroRsp = new BeginIntroductionResponse(
-                                      biRqId,
-                                      Some(aAccepted && bAccepted),
-                                      aRejectReason,
-                                      bRejectReason)
+                            // create BeginIntroductionResponse message
+                            val beginIntroRsp = new BeginIntroductionResponse(
+                              biRq.requestId.get,
+                              Some(aiRsp.accepted.get && biRsp.accepted.get),
+                              aiRsp.rejectReason,
+                              biRsp.rejectReason)
 
-                                    // check whether A and B accepted
-                                    if (aAccepted && bAccepted) {
-                                      // create new cnxns
-                                      // TODO: Create new cnxns properly
-                                      val abCnxn = new acT.AgentCnxn(new URI("agent://a"), "", new URI("agent://b"))
-                                      val baCnxn = new acT.AgentCnxn(new URI("agent://b"), "", new URI("agent://a"))
+                            // check whether A and B accepted
+                            if (aiRsp.accepted.get && biRsp.accepted.get) {
+                              // create new cnxns
+                              // TODO: Create new cnxns properly
+                              val abCnxn = new ConcreteHL.PortableAgentCnxn(new URI("agent://a"), "", new URI("agent://b"))
+                              val baCnxn = new ConcreteHL.PortableAgentCnxn(new URI("agent://b"), "", new URI("agent://a"))
 
-                                      // create Connect messages
-                                      val aConnect = new Connect(aConnectId, Some(abCnxn), Some(baCnxn))
-                                      val bConnect = new Connect(bConnectId, Some(baCnxn), Some(abCnxn))
+                              // create Connect messages
+                              val aConnect = new Connect(aiRsp.connectId.get, Some(abCnxn), Some(baCnxn))
+                              val bConnect = new Connect(biRsp.connectId.get, Some(baCnxn), Some(abCnxn))
 
-                                      // send Connect messages
-                                      reset { kvdbNode.put(aRqCnxn)(aConnect.toCnxnCtxtLabel, aConnect.toGround) }
-                                      reset { kvdbNode.put(bRqCnxn)(bConnect.toCnxnCtxtLabel, bConnect.toGround) }
+                              // send Connect messages
+                              node.put(biRq.aRequestCnxn.get)(aConnect)
+                              node.put(biRq.aRequestCnxn.get)(bConnect)
 
-                                      // send BeginIntroductionResponse message
-                                      reset { kvdbNode.put(biRspCnxn)(beginIntroRsp.toCnxnCtxtLabel, beginIntroRsp.toGround) }
-                                    } else {
-                                      // send BeginIntroductionResponse message
-                                      reset { kvdbNode.put(biRspCnxn)(beginIntroRsp.toCnxnCtxtLabel, beginIntroRsp.toGround) }
-                                    }
-                                  }
-                                  case _ => {
-                                    // expected IntroductionResponse
-                                    throw new Exception("unexpected protocol message")
-                                  }
-                                }
-                              }
-                              case _ => {
-                                // expected IntroductionResponse
-                                throw new Exception("unexpected protocol message")
-                              }
+                              // send BeginIntroductionResponse message
+                              node.put(biRq.responseCnxn.get)(beginIntroRsp)
+                            } else {
+                              // send BeginIntroductionResponse message
+                              node.put(biRq.responseCnxn.get)(beginIntroRsp)
                             }
                           }
+                          case _ => {
+                            // expected IntroductionResponse
+                            throw new Exception("unexpected protocol message")
+                          }
+//                        }
                         }
-                      }
-                      case _ => {
-                        // expected GetIntroductionProfileResponse
-                        throw new Exception("unexpected protocol message")
                       }
                     }
                   }
                   case _ => {
-                    // expected GetIntroductionProfileResponse
+                    // expected GetIntroductionProfileResponse (x2)
                     throw new Exception("unexpected protocol message")
                   }
                 }
@@ -162,27 +126,34 @@ trait BaseProtocols {
 
   def genericIntroduced(
     kvdbNode: Being.AgentKVDBNode[PersistedKVDBNodeRequest, PersistedKVDBNodeResponse],
-    cnxn: acT.AgentCnxn,
-    privateRqCnxn: acT.AgentCnxn,
-    privateRspCnxn: acT.AgentCnxn) {
+    cnxn: ConcreteHL.PortableAgentCnxn,
+    privateRqCnxn: ConcreteHL.PortableAgentCnxn,
+    privateRspCnxn: ConcreteHL.PortableAgentCnxn) {
+
+    genericIntroduced(new KVDBNodeWrapper(kvdbNode), cnxn, privateRqCnxn, privateRspCnxn)
+  }
+
+  def genericIntroduced(
+    node: NodeWrapper,
+    cnxn: ConcreteHL.PortableAgentCnxn,
+    privateRqCnxn: ConcreteHL.PortableAgentCnxn,
+    privateRspCnxn: ConcreteHL.PortableAgentCnxn) {
 
     reset {
       // listen for GetIntroductionProfileRequest message
-      for (giprq <- kvdbNode.get(cnxn)(new GetIntroductionProfileRequest().toCnxnCtxtLabel)) {
+      for (e <- node.get(cnxn)(new GetIntroductionProfileRequest())) {
 
-        giprq match {
-          case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, GetIntroductionProfileRequest(
-            Some(rqId),
-            Some(rspCnxn))))) => {
-
+        e match {
+          case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, gipRq: GetIntroductionProfileRequest))) => {
+            // TODO: Validate gipRq
             // TODO: Load introduction profile
 
             // create GetIntroductionProfileResponse message
             // TODO: Set introduction profile on message
-            val getIntroProfileRsp = new GetIntroductionProfileResponse(rqId)
+            val getIntroProfileRsp = new GetIntroductionProfileResponse(gipRq.requestId.get)
 
             // send GetIntroductionProfileResponse message
-            reset { kvdbNode.put(rspCnxn)(getIntroProfileRsp.toCnxnCtxtLabel, getIntroProfileRsp.toGround) }
+            node.put(gipRq.responseCnxn.get)(getIntroProfileRsp)
           }
           case _ => {
             // expected GetIntroductionProfileRequest
@@ -194,57 +165,44 @@ trait BaseProtocols {
 
     reset {
       // listen for IntroductionRequest message
-      for (irq <- kvdbNode.get(cnxn)(new IntroductionRequest().toCnxnCtxtLabel)) {
-
-        irq match {
-          case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, IntroductionRequest(
-            Some(rqId),
-            Some(rspCnxn),
-            message)))) => {
+      for (e <- node.get(cnxn)(new IntroductionRequest())) {
+        e match {
+          case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, iRq: IntroductionRequest))) => {
+            // TODO: Validate iRq
 
             // create IntroductionRequest message
             // TODO: Add introduction profile to message
-            val introRq = new IntroductionRequest(Some(UUID.randomUUID.toString), Some(privateRspCnxn), message)
+            val introRq = new IntroductionRequest(Some(UUID.randomUUID.toString), Some(privateRspCnxn), iRq.message)
 
             // send IntroductionRequest message
-            reset { kvdbNode.put(privateRqCnxn)(introRq.toCnxnCtxtLabel, introRq.toGround) }
+            node.put(privateRqCnxn)(introRq)
 
             reset {
               // listen for IntroductionResponse message
               // TODO: TTL
-              for (irsp <- kvdbNode.get
-                (privateRspCnxn)
-                (new IntroductionResponse(introRq.requestId.get).toCnxnCtxtLabel)) {
-
-                irsp match {
-                  case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, IntroductionResponse(
-                    _,
-                    Some(accepted),
-                    rejectReason,
-                    _)))) => {
+              for (f <- node.get(privateRspCnxn)(new IntroductionResponse(introRq.requestId.get))) {
+                f match {
+                  case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, iRsp: IntroductionResponse))) => {
+                    // TODO: Validate iRsp
 
                     // create IntroductionResponse message
                     val introRsp = new IntroductionResponse(
-                      rqId,
-                      Some(accepted),
-                      rejectReason,
+                      iRq.requestId.get,
+                      iRsp.accepted,
+                      iRsp.rejectReason,
                       Some(UUID.randomUUID.toString))
 
                     // send IntroductionResponse message
-                    reset { kvdbNode.put(rspCnxn)(introRsp.toCnxnCtxtLabel, introRsp.toGround) }
+                    node.put(iRq.responseCnxn.get)(introRsp)
 
-                    if (accepted) {
+                    if (iRsp.accepted.get) {
                       reset {
                         // listen for Connect message
                         // TODO: TTL
-                        for (connect <- kvdbNode.get(cnxn)(new Connect(introRsp.connectId.get).toCnxnCtxtLabel)) {
-
-                          connect match {
-                            case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, Connect(
-                              _,
-                              Some(newRqCnxn),
-                              Some(newRspCnxn))))) => {
-
+                        for (g <- node.get(cnxn)(new Connect(introRsp.connectId.get))) {
+                          g match {
+                            case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, c: Connect))) => {
+                              // TODO: Validate c
                               // TODO: Store the new cnxns
                             }
                             case _ => {

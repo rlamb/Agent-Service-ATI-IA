@@ -1,8 +1,12 @@
 package com.protegra_ati.agentservices.protocols.msgs
 
-import com.biosimilarity.evaluator.distribution.diesel.DieselEngineScope._
+import com.biosimilarity.evaluator.distribution.ConcreteHL
 
-case class Connect(connectId: String, requestCnxn: Option[acT.AgentCnxn], responseCnxn: Option[acT.AgentCnxn])
+case class Connect(
+  connectId: String,
+  requestCnxn: Option[ConcreteHL.PortableAgentCnxn],
+  responseCnxn: Option[ConcreteHL.PortableAgentCnxn])
+
   extends ProtocolMessage {
 
   def this(connectId: String) = this(connectId, None, None)

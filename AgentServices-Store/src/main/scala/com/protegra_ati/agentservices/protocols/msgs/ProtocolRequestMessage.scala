@@ -1,8 +1,8 @@
 package com.protegra_ati.agentservices.protocols.msgs
 
-import com.biosimilarity.evaluator.distribution.diesel.DieselEngineScope._
+import com.biosimilarity.evaluator.distribution.ConcreteHL
 
 trait ProtocolRequestMessage extends ProtocolMessage {
   val requestId: Option[String]
-  val responseCnxn: Option[acT.AgentCnxn]
+  val responseCnxn: Option[ConcreteHL.PortableAgentCnxn]
 }

@@ -9,4 +9,6 @@ case class IntroductionResponse(
   extends ProtocolResponseMessage {
 
   def this(responseId: String) = this(responseId, None, None, None)
+  def this(responseId: String, accepted: Option[Boolean]) = this(responseId, accepted, None, None)
+  def this(responseId: String, accepted: Option[Boolean], rejectReason: Option[String]) = this(responseId, accepted, rejectReason, None)
 }
