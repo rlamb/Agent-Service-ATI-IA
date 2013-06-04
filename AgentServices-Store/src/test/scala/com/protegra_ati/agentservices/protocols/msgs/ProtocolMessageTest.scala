@@ -2,9 +2,11 @@ package com.protegra_ati.agentservices.protocols.msgs
 
 import com.protegra_ati.agentservices.store.extensions.StringExtensions._
 import java.util.UUID
-import org.specs2.mutable.SpecificationWithJUnit
+import org.specs2.mutable._
 
-class ProtocolMessageTest extends SpecificationWithJUnit {
+class ProtocolMessageTest extends SpecificationWithJUnit with Tags {
+  section("unit", "ia")
+
   "BeginIntroductionRequest" should {
     "convert to CnxnCtxtLabel" in {
       val value = new BeginIntroductionRequest().toCnxnCtxtLabel
