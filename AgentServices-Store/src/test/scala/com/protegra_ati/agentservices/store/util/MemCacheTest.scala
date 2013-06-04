@@ -1,23 +1,21 @@
 package com.protegra_ati.agentservices.store.util
 
-import org.specs2.runner._
-import org.junit.runner._
-import org.specs2.mutable._
-
-import java.util.UUID
-import org.junit._
-import Assert._
-import net.spy.memcached.{FailureMode, ConnectionFactoryBuilder, AddrUtil, MemcachedClient}
-import java.net.InetSocketAddress
 import com.protegra_ati.agentservices.store.Timeouts
+import java.util.UUID
+import net.spy.memcached._
+import org.specs2.mutable._
+import org.specs2.specification.Scope
 
 class MemCacheTest extends SpecificationWithJUnit
 with Timeouts
 {
-  val client = new MemcachedClient(new ConnectionFactoryBuilder().setDaemon(true).setFailureMode(FailureMode.Retry).build(), AddrUtil.getAddresses("127.0.0.1:11211"))
+  class Setup extends Scope {
+    val client = new MemcachedClient(new ConnectionFactoryBuilder().setDaemon(true).setFailureMode(FailureMode.Retry).build(), AddrUtil.getAddresses("127.0.0.1:11211"))
+  }
+
   "spymemcached client set get" should {
 
-    "find correct value" in {
+    "find correct value" in new Setup {
       val key = UUID.randomUUID().toString
       val expected = "test"
       client.set(key, 3600, expected)
@@ -25,12 +23,12 @@ with Timeouts
       found must be_==(expected)
     }
 
-    "not find a missing value" in {
+    "not find a missing value" in new Setup {
       val key = UUID.randomUUID().toString
       val found = client.get(key)
       found must beNull[ java.lang.Object ]
     }
-    "not find an expired value" in {
+    "not find an expired value" in new Setup {
       val key = UUID.randomUUID().toString
       val expected = "test"
       //timeout in seconds
@@ -40,7 +38,7 @@ with Timeouts
       found must beNull[ java.lang.Object ]
     }
 
-    "find correct value within expiry" in {
+    "find correct value within expiry" in new Setup {
       val key = UUID.randomUUID().toString
       val expected = "test"
       client.set(key, 2, expected)
@@ -51,7 +49,7 @@ with Timeouts
   }
 
   "MemCache object set get" should {
-    "find correct value" in {
+    "find correct value" in new Setup {
       val key = UUID.randomUUID().toString
       val expected = "test"
       MemCache.set(key, expected)(client);
@@ -59,13 +57,13 @@ with Timeouts
       found must be_==(expected)
     }
 
-    "not find a missing value" in {
+    "not find a missing value" in new Setup {
       val key = UUID.randomUUID().toString
       val found = MemCache.get[ String ](key)(client)
       found must beNull[ java.lang.Object ]
     }
 
-    "hasValue" in {
+    "hasValue" in new Setup {
       val key = UUID.randomUUID().toString
       val expected = "test"
       MemCache.set(key, expected)(client);
@@ -73,7 +71,7 @@ with Timeouts
       found must be_==(true)
     }
 
-    "hasValue is false" in {
+    "hasValue is false" in new Setup {
       val key = UUID.randomUUID().toString
       val expected = "test"
       MemCache.set(key, expected)(client);
@@ -81,7 +79,7 @@ with Timeouts
       found must be_==(false)
     }
 
-    "replace correct value" in {
+    "replace correct value" in new Setup {
       val key = UUID.randomUUID().toString
       val expected = "test"
       MemCache.set(key, expected)(client);
@@ -96,7 +94,7 @@ with Timeouts
   }
 
   "MemCache object list" should {
-    "add value" in {
+    "add value" in new Setup {
       val key = UUID.randomUUID().toString
       val value = "test"
       val expected = value :: Nil
@@ -105,7 +103,7 @@ with Timeouts
       found must be_==(expected)
     }
 
-    "add 100 values" in {
+    "add 100 values" in new Setup {
       val key = UUID.randomUUID().toString
       val value = "test"
       val expected = value :: Nil

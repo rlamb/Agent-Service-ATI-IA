@@ -12,8 +12,6 @@ trait ids extends Scope
 
 class MySpecTest extends SpecificationWithJUnit
 {
-  println("OUTER ")
-
   "eventually" should {
     "A matcher can match right away with eventually" in new ids
     {

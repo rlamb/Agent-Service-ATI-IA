@@ -8,40 +8,40 @@
 
 package com.protegra_ati.agentservices.store
 
-import org.specs2.mutable._
-import org.specs2.runner._
-import org.junit.runner._
-
-import com.biosimilarity.lift.model.store._
-import com.protegra_ati.agentservices.store.extensions.StringExtensions._
 import com.protegra_ati.agentservices.store.extensions.ResourceExtensions._
+import com.protegra_ati.agentservices.store.extensions.StringExtensions._
 import com.protegra_ati.agentservices.store.extensions.URIExtensions._
-
-import scala.util.continuations._
-
-import java.net.URI
-import java.util.UUID
-
-import com.protegra_ati.agentservices.store.mongo.usage.AgentKVDBMongoScope._
 import com.protegra_ati.agentservices.store.mongo.usage.AgentKVDBMongoScope.acT._
 import com.protegra_ati.agentservices.store.mongo.usage.AgentKVDBMongoScope.mTT._
-import com.protegra_ati.agentservices.store.mongo.usage._
-
-
-
+import java.util.UUID
+import org.specs2.specification.Scope
 import scala.concurrent.ops._
+import scala.util.continuations._
 import util.Results
 
 class KvdbPlatformAgentSingleRaceTest extends KvdbPlatformAgentBaseRace
 {
-  val timeoutBetween = 0
+  class Setup extends Scope {
+    val timeoutBetween = 0
 
-  val sourceAddress = "127.0.0.1".toURI
-  val acquaintanceAddresses = List[ URI ]()
-  val writer = createNode(sourceAddress, acquaintanceAddresses)
-  val reader = writer
+    val sourceId = UUID.randomUUID
+    val targetId = sourceId
+    val cnxn = new AgentCnxn(sourceId.toString.toURI, "", targetId.toString.toURI)
+    val cnxnRandom = new AgentCnxn("Random".toURI, "", UUID.randomUUID.toString.toURI)
 
-//  testMessaging(writer, reader)
+    val cnxnUIStore = new AgentCnxn(( "UI" + sourceId.toString ).toURI, "", ( "Store" + targetId.toString ).toURI)
+
+    val writerConfigFileName = Some("db_ui.conf")
+    val readerConfigFileName = Some("db_store.conf")
+
+    val sourceAddress = "127.0.0.1".toURI.withPort(RABBIT_PORT_STORE_PRIVATE)
+    val acquaintanceAddress = "127.0.0.1".toURI.withPort(RABBIT_PORT_UI_PRIVATE)
+
+    val pairedWriter = createNode(sourceAddress, List(acquaintanceAddress), writerConfigFileName)
+    val pairedReader = createNode(acquaintanceAddress, List(sourceAddress), readerConfigFileName)
+
+    Thread.sleep(timeoutBetween)
+  }
 
 //  example only, must comment out above for it to work , too many nodes
 //  "recursive Get 1 Put" should {
@@ -95,26 +95,7 @@ class KvdbPlatformAgentSingleRaceTest extends KvdbPlatformAgentBaseRace
 //    }
 //  }
   "20 Gets" should {
-     val sourceId = UUID.randomUUID
-     val targetId = sourceId
-     val cnxn = new AgentCnxn(sourceId.toString.toURI, "", targetId.toString.toURI)
-     val cnxnRandom = new AgentCnxn("Random".toURI, "", UUID.randomUUID.toString.toURI)
-
-     val cnxnUIStore = new AgentCnxn(( "UI" + sourceId.toString ).toURI, "", ( "Store" + targetId.toString ).toURI)
-
-     val writerConfigFileName = Some("db_ui.conf")
-     val readerConfigFileName = Some("db_store.conf")
-
-     val sourceAddress = "127.0.0.1".toURI.withPort(RABBIT_PORT_STORE_PRIVATE)
-     val acquaintanceAddress = "127.0.0.1".toURI.withPort(RABBIT_PORT_UI_PRIVATE)
-
-     val pairedWriter = createNode(sourceAddress, List(acquaintanceAddress), writerConfigFileName)
-     val pairedReader = createNode(acquaintanceAddress, List(sourceAddress), readerConfigFileName)
-
-
-     Thread.sleep(timeoutBetween)
-     "retrieve" in {
-
+     "retrieve" in new Setup {
        val lblChannel = "contentRequest(_)".toLabel
 
        val resultKey = Results.getKey()

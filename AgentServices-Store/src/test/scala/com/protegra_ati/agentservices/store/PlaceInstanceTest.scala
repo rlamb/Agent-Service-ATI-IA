@@ -8,38 +8,36 @@
 
 package com.protegra_ati.agentservices.store
 
-
-import com.protegra_ati.agentservices.store.extensions.StringExtensions._
 import com.protegra_ati.agentservices.store.extensions.ResourceExtensions._
-
-import scala.util.continuations._
-
-import java.net.URI
-import java.util.UUID
-
+import com.protegra_ati.agentservices.store.extensions.StringExtensions._
 import com.protegra_ati.agentservices.store.mongo.usage.AgentKVDBMongoScope.acT._
 import com.protegra_ati.agentservices.store.mongo.usage.AgentKVDBMongoScope.mTT._
-
+import java.net.URI
+import java.util.UUID
+import org.specs2.specification.Scope
+import scala.util.continuations._
 import util.{Severity, Results}
 
 class PlaceInstanceTest extends KvdbPlatformAgentBase
 {
   sequential
 
-  val timeoutBetween = 0
+  class Setup extends Scope {
+    val timeoutBetween = 0
 
-  val sourceAddress = "127.0.0.1".toURI
-  val acquaintanceAddresses = List[ URI ]()
-  val writer = createNode(sourceAddress, acquaintanceAddresses)
-  val reader = writer
+    val sourceAddress = "127.0.0.1".toURI
+    val acquaintanceAddresses = List[ URI ]()
+    val writer = createNode(sourceAddress, acquaintanceAddresses)
+    val reader = writer
 
-  val sourceId = UUID.randomUUID
-  val targetId = sourceId
-  val cnxn = new AgentCnxn(sourceId.toString.toURI, "", targetId.toString.toURI)
-  val cnxnRandom = new AgentCnxn("Random".toURI, "", UUID.randomUUID.toString.toURI)
+    val sourceId = UUID.randomUUID
+    val targetId = sourceId
+    val cnxn = new AgentCnxn(sourceId.toString.toURI, "", targetId.toString.toURI)
+    val cnxnRandom = new AgentCnxn("Random".toURI, "", UUID.randomUUID.toString.toURI)
+  }
 
   "prover " should {
-      "work" in {
+      "work" in new Setup {
         val prover = writer.cache.getProver()
         val query = "pub( X625f0c472fac420293ea3716fcc008bb_ )"
         val label = "pub( string( 'X1??' ) )"
@@ -57,7 +55,7 @@ class PlaceInstanceTest extends KvdbPlatformAgentBase
         success
       }
 
-    "fail" in {
+    "fail" in new Setup {
       val prover = writer.cache.getProver()
       val query = "pub( X625f0c472fac420293ea3716fcc008bb_ )"
       val label = "pub( string( 'X1?' ) )"
@@ -77,7 +75,7 @@ class PlaceInstanceTest extends KvdbPlatformAgentBase
 
 
   "read " should {
-      "find a results without continuation" in {
+      "find a results without continuation" in new Setup {
         skipped("isolate")
         val key = "pub(_)".toLabel
 

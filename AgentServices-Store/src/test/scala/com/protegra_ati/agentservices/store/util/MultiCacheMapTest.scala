@@ -1,34 +1,23 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package com.protegra_ati.agentservices.store.util
 
 import java.util.UUID
-import org.junit._
-import Assert._
+import org.specs2.mutable.SpecificationWithJUnit
 import scala.collection.JavaConversions._
 
-class MultiCacheMapTest {
+class MultiCacheMapTest extends SpecificationWithJUnit {
 
-    @Before
-    def setUp: Unit = {
-    }
-
-    @After
-    def tearDown: Unit = {
-    }
-
-    @Test
-    def listenerMapTest = {
+  "MultiCacheMap" should {
+    "Add correct number of listeners" in {
       val listeners = new MultiCacheMap[String]("T")
       val agentSessionId1 = UUID.randomUUID
       val agentSessionId2 = UUID.randomUUID
+
       listeners.add(agentSessionId1.toString, "tag1")
       listeners.add(agentSessionId2.toString, "tag2")
       listeners.add(agentSessionId2.toString, "tag3")
-    assertEquals(1, listeners.get(agentSessionId1.toString).toList.length)
-    assertEquals(2, listeners.get(agentSessionId2.toString).toList.length)
+
+      1 must be_==(listeners.get(agentSessionId1.toString).toList.length)
+      2 must be_==(listeners.get(agentSessionId2.toString).toList.length)
     }
+  }
 }

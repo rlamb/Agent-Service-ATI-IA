@@ -8,56 +8,44 @@
 
 package com.protegra_ati.agentservices.store
 
-import org.specs2.mutable._
-
-import org.specs2.runner._
-import org.junit.runner._
-
-import com.biosimilarity.lift.model.store._
-import com.protegra_ati.agentservices.store.extensions.StringExtensions._
 import com.protegra_ati.agentservices.store.extensions.ResourceExtensions._
-import com.protegra_ati.agentservices.store.extensions.URIExtensions._
-
-import scala.util.continuations._
-
-import java.net.URI
-import java.util.UUID
-
-import com.protegra_ati.agentservices.store.mongo.usage.AgentKVDBMongoScope._
+import com.protegra_ati.agentservices.store.extensions.StringExtensions._
 import com.protegra_ati.agentservices.store.mongo.usage.AgentKVDBMongoScope.acT._
 import com.protegra_ati.agentservices.store.mongo.usage.AgentKVDBMongoScope.mTT._
-import com.protegra_ati.agentservices.store.mongo.usage._
-
-
+import java.net.URI
+import java.util.UUID
+import org.specs2.specification.Scope
+import scala.util.continuations._
 import util.Results
 
 class KvdbPlatformAgentSingleTest extends KvdbPlatformAgentBase
 {
   sequential
 
-  val timeoutBetween = 0
+  class Setup extends Scope {
+    val timeoutBetween = 0
 
-  val sourceAddress = "127.0.0.1".toURI
-  val acquaintanceAddresses = List[ URI ]()
-  val writer = createNode(sourceAddress, acquaintanceAddresses)
-  val reader = writer
+    val sourceAddress = "127.0.0.1".toURI
+    val acquaintanceAddresses = List[ URI ]()
+    val writer = createNode(sourceAddress, acquaintanceAddresses)
+    val reader = writer
 
-  //reenable these
-    testMessaging(writer, reader)
-    testWildcardWithPut(writer, reader)
-    testWildcardWithStore(writer, reader)
-    testWildcardWithPutAndCursor(writer, reader)
-    testWildcardWithStoreAndCursor(writer, reader)
-  //  testWildcardWithCursorBefore(writer, reader)
+    //reenable these
+      testMessaging(writer, reader)
+      testWildcardWithPut(writer, reader)
+      testWildcardWithStore(writer, reader)
+      testWildcardWithPutAndCursor(writer, reader)
+      testWildcardWithStoreAndCursor(writer, reader)
+    //  testWildcardWithCursorBefore(writer, reader)
 
-  val sourceId = UUID.randomUUID
-  val targetId = sourceId
-  val cnxn = new AgentCnxn(sourceId.toString.toURI, "", targetId.toString.toURI)
-  val cnxnRandom = new AgentCnxn("Random".toURI, "", UUID.randomUUID.toString.toURI)
-
+    val sourceId = UUID.randomUUID
+    val targetId = sourceId
+    val cnxn = new AgentCnxn(sourceId.toString.toURI, "", targetId.toString.toURI)
+    val cnxnRandom = new AgentCnxn("Random".toURI, "", UUID.randomUUID.toString.toURI)
+  }
 
   "read " should {
-      "find a results without continuation" in {
+      "find a results without continuation" in new Setup {
         val key = "pub(_)".toLabel
 
         val resultKey = Results.getKey()
