@@ -18,7 +18,7 @@ trait BaseProtocols {
   def genericIntroducer(node: NodeWrapper, cnxn: ConcreteHL.PortableAgentCnxn): Unit = {
     reset {
       // listen for BeginIntroductionRequest message
-      for (e <- node.get(cnxn)(new BeginIntroductionRequest())) {
+      for (e <- node.subscribe(cnxn)(new BeginIntroductionRequest())) {
         e match {
           case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, biRq: BeginIntroductionRequest))) => {
             // TODO: Validate biRq
@@ -141,7 +141,7 @@ trait BaseProtocols {
 
     reset {
       // listen for GetIntroductionProfileRequest message
-      for (e <- node.get(cnxn)(new GetIntroductionProfileRequest())) {
+      for (e <- node.subscribe(cnxn)(new GetIntroductionProfileRequest())) {
 
         e match {
           case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, gipRq: GetIntroductionProfileRequest))) => {
@@ -165,7 +165,7 @@ trait BaseProtocols {
 
     reset {
       // listen for IntroductionRequest message
-      for (e <- node.get(cnxn)(new IntroductionRequest())) {
+      for (e <- node.subscribe(cnxn)(new IntroductionRequest())) {
         e match {
           case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, iRq: IntroductionRequest))) => {
             // TODO: Validate iRq

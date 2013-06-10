@@ -10,6 +10,7 @@ trait NodeWrapper {
   type Generators <: MonadicGenerators
 
   def get(cnxn : ConcreteHL.PortableAgentCnxn)(message: ProtocolMessage): Generators#Generator[Option[mTT.Resource], Unit, Unit]
+  def subscribe(cnxn : ConcreteHL.PortableAgentCnxn)(message: ProtocolMessage): Generators#Generator[Option[mTT.Resource], Unit, Unit]
   def put(cnxn : ConcreteHL.PortableAgentCnxn)(message: ProtocolMessage): Unit
 }
 
@@ -20,6 +21,10 @@ class KVDBNodeWrapper(kvdbNode: Being.AgentKVDBNode[PersistedKVDBNodeRequest, Pe
 
   override def get(cnxn: ConcreteHL.PortableAgentCnxn)(message: ProtocolMessage): Generators#Generator[Option[mTT.Resource], Unit, Unit] = {
     kvdbNode.get(toAgentCnxn(cnxn))(message.toCnxnCtxtLabel)
+  }
+
+  override def subscribe(cnxn: ConcreteHL.PortableAgentCnxn)(message: ProtocolMessage): Generators#Generator[Option[mTT.Resource], Unit, Unit] = {
+    kvdbNode.subscribe(toAgentCnxn(cnxn))(message.toCnxnCtxtLabel)
   }
 
   override def put(cnxn: ConcreteHL.PortableAgentCnxn)(message: ProtocolMessage): Unit = {

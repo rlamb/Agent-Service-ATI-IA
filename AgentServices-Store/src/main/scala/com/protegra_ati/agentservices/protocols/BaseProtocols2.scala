@@ -2,6 +2,7 @@ package com.protegra_ati.agentservices.protocols
 
 import com.biosimilarity.evaluator.distribution.ConcreteHL
 import com.biosimilarity.evaluator.distribution.diesel.DieselEngineScope._
+import com.protegra_ati.agentservices.protocols.msgs._
 import java.net.URI
 import scala.concurrent._
 import scala.util.Failure
@@ -16,8 +17,34 @@ trait BaseProtocols2 extends ListenerHelper with SenderHelper {
 
   def genericIntroducer(node: NodeWrapper, cnxn: ConcreteHL.PortableAgentCnxn): Unit = {
     // listen for BeginIntroductionRequest message
-    listenBeginIntroductionRequest(node, cnxn) onComplete {
-      case Success(biRq) => {
+    listenBeginIntroductionRequest(node, cnxn, beginIntroductionRequestHandler(node, _))
+  }
+
+  def genericIntroduced(
+    kvdbNode: Being.AgentKVDBNode[PersistedKVDBNodeRequest, PersistedKVDBNodeResponse],
+    cnxn: ConcreteHL.PortableAgentCnxn,
+    privateRqCnxn: ConcreteHL.PortableAgentCnxn,
+    privateRspCnxn: ConcreteHL.PortableAgentCnxn) {
+
+    genericIntroduced(new KVDBNodeWrapper(kvdbNode), cnxn, privateRqCnxn, privateRspCnxn)
+  }
+
+  def genericIntroduced(
+    node: NodeWrapper,
+    cnxn: ConcreteHL.PortableAgentCnxn,
+    privateRqCnxn: ConcreteHL.PortableAgentCnxn,
+    privateRspCnxn: ConcreteHL.PortableAgentCnxn) {
+
+    // listen for GetIntroductionProfileRequest message
+    listenGetIntroductionProfileRequest(node, cnxn, getIntroductionProfileRequestHandler(node, _))
+
+    // listen for IntroductionRequest message
+    listenIntroductionRequest(node, cnxn, introductionRequestHandler(node, cnxn, privateRqCnxn, privateRspCnxn, _))
+  }
+
+  def beginIntroductionRequestHandler(node: NodeWrapper, result: Either[Throwable, BeginIntroductionRequest]): Unit = {
+    result match {
+      case Right(biRq) => {
         // send GetIntroductionProfileRequest messages
         val aGetIntroProfileRqId = sendGetIntroductionProfileRequest(node, biRq.aRequestCnxn.get, biRq.aResponseCnxn.get)
         val bGetIntroProfileRqId = sendGetIntroductionProfileRequest(node, biRq.bRequestCnxn.get, biRq.bResponseCnxn.get)
@@ -45,7 +72,9 @@ trait BaseProtocols2 extends ListenerHelper with SenderHelper {
 
               case Success((aiRsp, biRsp)) => {
                 // check whether A and B accepted
-                if (aiRsp.accepted.get && biRsp.accepted.get) {
+                val accepted = aiRsp.accepted.get && biRsp.accepted.get
+
+                if (accepted) {
                   // create new cnxns
                   // TODO: Create new cnxns properly
                   val abCnxn = new ConcreteHL.PortableAgentCnxn(new URI("agent://a"), "", new URI("agent://b"))
@@ -56,14 +85,14 @@ trait BaseProtocols2 extends ListenerHelper with SenderHelper {
                   sendConnect(node, biRq.bRequestCnxn.get, biRsp.connectId.get, baCnxn, abCnxn)
 
                   // send BeginIntroductionResponse message
-                  sendBeginIntroductionResponse(node, biRq.responseCnxn.get, biRq.requestId.get, true)
+                  sendBeginIntroductionResponse(node, biRq.responseCnxn.get, biRq.requestId.get, accepted)
                 } else {
                   // send BeginIntroductionResponse message
                   sendBeginIntroductionResponse(
                     node,
                     biRq.responseCnxn.get,
                     biRq.requestId.get,
-                    false,
+                    accepted,
                     aiRsp.rejectReason,
                     biRsp.rejectReason)
                 }
@@ -74,40 +103,32 @@ trait BaseProtocols2 extends ListenerHelper with SenderHelper {
           case Failure(t) => throw t
         }
       }
-      case Failure(t) => throw t
+      case Left(t) => throw t
     }
   }
 
-  def genericIntroduced(
-    kvdbNode: Being.AgentKVDBNode[PersistedKVDBNodeRequest, PersistedKVDBNodeResponse],
-    cnxn: ConcreteHL.PortableAgentCnxn,
-    privateRqCnxn: ConcreteHL.PortableAgentCnxn,
-    privateRspCnxn: ConcreteHL.PortableAgentCnxn) {
-
-    genericIntroduced(new KVDBNodeWrapper(kvdbNode), cnxn, privateRqCnxn, privateRspCnxn)
-  }
-
-  def genericIntroduced(
-    node: NodeWrapper,
-    cnxn: ConcreteHL.PortableAgentCnxn,
-    privateRqCnxn: ConcreteHL.PortableAgentCnxn,
-    privateRspCnxn: ConcreteHL.PortableAgentCnxn) {
-
-    // listen for GetIntroductionProfileRequest message
-    listenGetIntroductionProfileRequest(node, cnxn) onComplete {
-      case Success(gipRq) => {
+  def getIntroductionProfileRequestHandler(node: NodeWrapper, result: Either[Throwable, GetIntroductionProfileRequest]): Unit = {
+    result match {
+      case Right(gipRq) => {
         // TODO: Load introduction profile
 
         // send GetIntroductionProfileResponse message
         // TODO: Send introduction profile details
         sendGetIntroductionProfileResponse(node, gipRq.responseCnxn.get, gipRq.requestId.get)
       }
-      case Failure(t) => throw t
+      case Left(t) => throw t
     }
+  }
 
-    // listen for IntroductionRequest message
-    listenIntroductionRequest(node, cnxn) onComplete {
-      case Success(iRq) => {
+  def introductionRequestHandler(
+    node: NodeWrapper,
+    cnxn: ConcreteHL.PortableAgentCnxn,
+    privateRqCnxn: ConcreteHL.PortableAgentCnxn,
+    privateRspCnxn: ConcreteHL.PortableAgentCnxn,
+    result: Either[Throwable, IntroductionRequest]): Unit = {
+
+    result match {
+      case Right(iRq) => {
         // send IntroductionRequest message
         // TODO: Send introduction profile to message
         val uiIntroRqId = sendIntroductionRequest(node, privateRqCnxn, privateRspCnxn, iRq.message)
@@ -136,7 +157,7 @@ trait BaseProtocols2 extends ListenerHelper with SenderHelper {
           case Failure(t) => throw t
         }
       }
-      case Failure(t) => throw t
+      case Left(t) => throw t
     }
   }
 }

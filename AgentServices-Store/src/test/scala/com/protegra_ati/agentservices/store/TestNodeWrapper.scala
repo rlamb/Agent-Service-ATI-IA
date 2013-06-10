@@ -12,6 +12,10 @@ class TestNodeWrapper(testNode: AgentTestNode) extends NodeWrapper {
     testNode.get(cnxn)(message.toCnxnCtxtLabel)
   }
 
+  override def subscribe(cnxn: ConcreteHL.PortableAgentCnxn)(message: ProtocolMessage): Generators#Generator[Option[mTT.Resource], Unit, Unit] = {
+    testNode.subscribe(cnxn)(message.toCnxnCtxtLabel)
+  }
+
   override def put(cnxn: ConcreteHL.PortableAgentCnxn)(message: ProtocolMessage): Unit = {
     testNode.put(cnxn)(message.toCnxnCtxtLabel, message.toGround)
   }

@@ -35,6 +35,30 @@ class AgentTestNode extends MonadicGenerators {
     }
   }
 
+  def subscribe(cnxn: ConcreteHL.PortableAgentCnxn)(path: CnxnCtxtLabel[String, String, String]): Generator[Option[mTT.Resource],Unit,Unit] = {
+    Generator {
+      rk: (Option[mTT.Resource] => Unit @suspendable) =>
+        val key = getKey(cnxn, path)
+
+        shift {
+          k: (Unit => Unit) => {
+            // TODO: Keep calling k() every time the result is found
+            val f = future {
+              while (!map.contains(key)) {
+                Thread.sleep(100)
+              }
+            }
+
+            f.onComplete {
+              case _ => k()
+            }
+          }
+        }
+
+        rk(map.remove(key))
+    }
+  }
+
   def put(cnxn: ConcreteHL.PortableAgentCnxn)(ptn: mTT.GetRequest, rsrc: mTT.Resource): Unit = {
     val key = getKey(cnxn, ptn)
     map.put(key, rsrc)

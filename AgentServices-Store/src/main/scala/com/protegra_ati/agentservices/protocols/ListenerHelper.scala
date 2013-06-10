@@ -9,46 +9,38 @@ import scala.util.continuations._
 trait ListenerHelper {
   def listenBeginIntroductionRequest(
     node: NodeWrapper,
-    cnxn: ConcreteHL.PortableAgentCnxn): Future[BeginIntroductionRequest] = {
-
-    val p = promise[BeginIntroductionRequest]()
+    cnxn: ConcreteHL.PortableAgentCnxn,
+    handler: Either[Throwable, BeginIntroductionRequest] => Unit): Unit = {
 
     reset {
-      for (e <- node.get(cnxn)(new BeginIntroductionRequest())) {
+      for (e <- node.subscribe(cnxn)(new BeginIntroductionRequest())) {
         e match {
           case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, message: BeginIntroductionRequest))) => {
             // TODO: Validate message
-            p.success(message)
+            handler(Right(message))
           }
-          case _ => p.failure(new Exception("unexpected protocol message"))
+          case _ => handler(Left(new Exception("unexpected protocol message")))
         }
-        () // Used to return unit in continuation
       }
     }
-
-    p.future
   }
 
   def listenGetIntroductionProfileRequest(
     node: NodeWrapper,
-    cnxn: ConcreteHL.PortableAgentCnxn): Future[GetIntroductionProfileRequest] = {
-
-    val p = promise[GetIntroductionProfileRequest]()
+    cnxn: ConcreteHL.PortableAgentCnxn,
+    handler: Either[Throwable, GetIntroductionProfileRequest] => Unit): Unit = {
 
     reset {
-      for (e <- node.get(cnxn)(new GetIntroductionProfileRequest())) {
+      for (e <- node.subscribe(cnxn)(new GetIntroductionProfileRequest())) {
         e match {
           case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, message: GetIntroductionProfileRequest))) => {
             // TODO: Validate message
-            p.success(message)
+            handler(Right(message))
           }
-          case _ => p.failure(new Exception("unexpected protocol message"))
+          case _ => handler(Left(new Exception("unexpected protocol message")))
         }
-        () // Used to return unit in continuation
       }
     }
-
-    p.future
   }
 
   def listenGetIntroductionProfileResponses(
@@ -84,24 +76,20 @@ trait ListenerHelper {
 
   def listenIntroductionRequest(
     node: NodeWrapper,
-    cnxn: ConcreteHL.PortableAgentCnxn): Future[IntroductionRequest] = {
-
-    val p = promise[IntroductionRequest]()
+    cnxn: ConcreteHL.PortableAgentCnxn,
+    handler: Either[Throwable, IntroductionRequest] => Unit): Unit = {
 
     reset {
-      for (e <- node.get(cnxn)(new IntroductionRequest())) {
+      for (e <- node.subscribe(cnxn)(new IntroductionRequest())) {
         e match {
           case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, message: IntroductionRequest))) => {
             // TODO: Validate message
-            p.success(message)
+            handler(Right(message))
           }
-          case _ => p.failure(new Exception("unexpected protocol message"))
+          case _ => handler(Left(new Exception("unexpected protocol message")))
         }
-        () // Used to return unit in continuation
       }
     }
-
-    p.future
   }
 
   def listenIntroductionResponses(
