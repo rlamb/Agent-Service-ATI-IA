@@ -12,9 +12,9 @@ import scala.concurrent._
 import scala.concurrent.duration._
 import scala.util.continuations._
 
-class ConcreteBaseProtocols extends BaseProtocols2
+class IntroductionUnitTest extends SpecificationWithJUnit with Tags {
+  class ConcreteBaseProtocols extends BaseProtocols2
 
-class BaseProtocolsTest extends SpecificationWithJUnit with Tags {
   class Setup extends Scope {
     val node = new TestNodeWrapper(new AgentTestNode)
     val baseProtocols = new ConcreteBaseProtocols
@@ -101,7 +101,7 @@ class BaseProtocolsTest extends SpecificationWithJUnit with Tags {
       node.put(bIntroductionRequest.responseCnxn.get)(bIntroductionResponse)
       val beginIntroductionResponse = Await.result(fBIRsp, Duration(10, "seconds"))
 
-      (aIntroductionRequest.requestId must be_!=(None)) and
+      aIntroductionRequest.requestId must be_!=(None) and
         (aIntroductionRequest.responseCnxn must be_==(Some(uiaCnxn))) and
         (aIntroductionRequest.message must be_==(Some(messageToA)))
     }
@@ -116,7 +116,7 @@ class BaseProtocolsTest extends SpecificationWithJUnit with Tags {
       node.put(bIntroductionRequest.responseCnxn.get)(bIntroductionResponse)
       val beginIntroductionResponse = Await.result(fBIRsp, Duration(10, "seconds"))
 
-      (bIntroductionRequest.requestId must be_!=(None)) and
+      bIntroductionRequest.requestId must be_!=(None) and
         (bIntroductionRequest.responseCnxn must be_==(Some(uibCnxn))) and
         (bIntroductionRequest.message must be_==(Some(messageToB)))
     }
@@ -131,7 +131,7 @@ class BaseProtocolsTest extends SpecificationWithJUnit with Tags {
       node.put(bIntroductionRequest.responseCnxn.get)(bIntroductionResponse)
       val beginIntroductionResponse = Await.result(fBIRsp, Duration(10, "seconds"))
 
-      (beginIntroductionResponse.responseId must be_==(beginIntroductionRequest.requestId.get)) and
+      beginIntroductionResponse.responseId must be_==(beginIntroductionRequest.requestId.get) and
         (beginIntroductionResponse.accepted must be_==(Some(true))) and
         (beginIntroductionResponse.aRejectReason must be_==(None)) and
         (beginIntroductionResponse.bRejectReason must be_==(None))
@@ -147,7 +147,7 @@ class BaseProtocolsTest extends SpecificationWithJUnit with Tags {
       node.put(bIntroductionRequest.responseCnxn.get)(bIntroductionResponse)
       val beginIntroductionResponse = Await.result(fBIRsp, Duration(10, "seconds"))
 
-      (beginIntroductionResponse.responseId must be_==(beginIntroductionRequest.requestId.get)) and
+      beginIntroductionResponse.responseId must be_==(beginIntroductionRequest.requestId.get) and
         (beginIntroductionResponse.accepted must be_==(Some(false))) and
         (beginIntroductionResponse.aRejectReason must be_==(None)) and
         (beginIntroductionResponse.bRejectReason must be_==(Some(bRejectReason)))
@@ -163,7 +163,7 @@ class BaseProtocolsTest extends SpecificationWithJUnit with Tags {
       node.put(bIntroductionRequest.responseCnxn.get)(bIntroductionResponse)
       val beginIntroductionResponse = Await.result(fBIRsp, Duration(10, "seconds"))
 
-      (beginIntroductionResponse.responseId must be_==(beginIntroductionRequest.requestId.get)) and
+      beginIntroductionResponse.responseId must be_==(beginIntroductionRequest.requestId.get) and
         (beginIntroductionResponse.accepted must be_==(Some(false))) and
         (beginIntroductionResponse.aRejectReason must be_==(Some(aRejectReason))) and
         (beginIntroductionResponse.bRejectReason must be_==(None))
@@ -179,7 +179,7 @@ class BaseProtocolsTest extends SpecificationWithJUnit with Tags {
       node.put(bIntroductionRequest.responseCnxn.get)(bIntroductionResponse)
       val beginIntroductionResponse = Await.result(fBIRsp, Duration(10, "seconds"))
 
-      (beginIntroductionResponse.responseId must be_==(beginIntroductionRequest.requestId.get)) and
+      beginIntroductionResponse.responseId must be_==(beginIntroductionRequest.requestId.get) and
         (beginIntroductionResponse.accepted must be_==(Some(false))) and
         (beginIntroductionResponse.aRejectReason must be_==(Some(aRejectReason))) and
         (beginIntroductionResponse.bRejectReason must be_==(Some(bRejectReason)))
