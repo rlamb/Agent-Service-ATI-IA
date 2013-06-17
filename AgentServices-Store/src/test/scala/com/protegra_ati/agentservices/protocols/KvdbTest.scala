@@ -18,6 +18,8 @@ class KvdbTest extends SpecificationWithJUnit {
     val label = "test(\"test\")".toLabel
   }
 
+  sequential
+
   "KVDB" should {
     "Get and Put" in new Setup() {
       var complete = false
@@ -67,33 +69,6 @@ class KvdbTest extends SpecificationWithJUnit {
               case _ => throw new Exception("unexpected protocol message")
             }
           }
-        }
-      }
-
-      complete must be_==(true).eventually(10, new org.specs2.time.Duration(1000))
-    }
-
-    "Subscribe and Publish" in new Setup() {
-      var complete = false
-
-      spawn {
-        reset {
-          for (e <- node.subscribe(cnxn)(label)) {
-            e match {
-              case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, value: String))) => {
-                complete = true
-              }
-              case _ => throw new Exception("unexpected protocol message")
-            }
-          }
-        }
-      }
-
-      Thread.sleep(5000)
-
-      spawn {
-        reset {
-          node.publish(cnxn)(label, mTT.Ground(ConcreteHL.InsertContent(label, Nil, "")))
         }
       }
 
