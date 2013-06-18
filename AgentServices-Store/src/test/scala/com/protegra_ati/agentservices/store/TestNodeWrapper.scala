@@ -19,4 +19,8 @@ class TestNodeWrapper(testNode: AgentTestNode) extends NodeWrapper {
   override def put(cnxn: ConcreteHL.PortableAgentCnxn)(message: ProtocolMessage): Unit = {
     testNode.put(cnxn)(message.toCnxnCtxtLabel, message.toGround)
   }
+
+  override def publish(cnxn: ConcreteHL.PortableAgentCnxn)(message: ProtocolMessage): Unit = {
+    testNode.publish(cnxn)(message.toCnxnCtxtLabel, message.toGround)
+  }
 }

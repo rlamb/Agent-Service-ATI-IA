@@ -5,9 +5,7 @@ import com.biosimilarity.evaluator.distribution.diesel.DieselEngineScope._
 import com.biosimilarity.lift.lib.MonadicGenerators
 import com.biosimilarity.lift.model.store.CnxnCtxtLabel
 import scala.collection.mutable
-import scala.concurrent._
 import scala.util.continuations._
-import ExecutionContext.Implicits.global
 
 class AgentTestNode extends MonadicGenerators {
   val map = mutable.Map[String, mTT.Resource]()
@@ -19,15 +17,10 @@ class AgentTestNode extends MonadicGenerators {
 
         shift {
           k: (Unit => Unit) => {
-            val f = future {
-              while (!map.contains(key)) {
-                Thread.sleep(100)
-              }
+            while (!map.contains(key)) {
+              Thread.sleep(100)
             }
-
-            f.onComplete {
-              case _ => k()
-            }
+            k()
           }
         }
 
@@ -43,15 +36,10 @@ class AgentTestNode extends MonadicGenerators {
         shift {
           k: (Unit => Unit) => {
             // TODO: Keep calling k() every time the result is found
-            val f = future {
-              while (!map.contains(key)) {
-                Thread.sleep(100)
-              }
+            while (!map.contains(key)) {
+              Thread.sleep(100)
             }
-
-            f.onComplete {
-              case _ => k()
-            }
+            k()
           }
         }
 
@@ -60,6 +48,11 @@ class AgentTestNode extends MonadicGenerators {
   }
 
   def put(cnxn: ConcreteHL.PortableAgentCnxn)(ptn: mTT.GetRequest, rsrc: mTT.Resource): Unit = {
+    val key = getKey(cnxn, ptn)
+    map.put(key, rsrc)
+  }
+
+  def publish(cnxn: ConcreteHL.PortableAgentCnxn)(ptn: mTT.GetRequest, rsrc: mTT.Resource): Unit = {
     val key = getKey(cnxn, ptn)
     map.put(key, rsrc)
   }

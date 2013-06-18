@@ -28,8 +28,8 @@ trait BaseProtocols {
             val bGetIntroProfileRq = new GetIntroductionProfileRequest(Some(UUID.randomUUID.toString), biRq.bResponseCnxn)
 
             // send GetIntroductionProfileRequest messages
-            node.put(biRq.aRequestCnxn.get)(aGetIntroProfileRq)
-            node.put(biRq.bRequestCnxn.get)(bGetIntroProfileRq)
+            node.publish(biRq.aRequestCnxn.get)(aGetIntroProfileRq)
+            node.publish(biRq.bRequestCnxn.get)(bGetIntroProfileRq)
 
             reset {
               // listen for GetIntroductionProfileResponse messages
@@ -51,8 +51,8 @@ trait BaseProtocols {
                     val bIntroRq = new IntroductionRequest(Some(UUID.randomUUID.toString), biRq.bResponseCnxn, biRq.bMessage)
 
                     // send IntroductionRequest messages
-                    node.put(biRq.aRequestCnxn.get)(aIntroRq)
-                    node.put(biRq.bRequestCnxn.get)(bIntroRq)
+                    node.publish(biRq.aRequestCnxn.get)(aIntroRq)
+                    node.publish(biRq.bRequestCnxn.get)(bIntroRq)
 
                     reset {
                       // listen for IntroductionResponse messages

@@ -12,6 +12,7 @@ trait NodeWrapper {
   def get(cnxn : ConcreteHL.PortableAgentCnxn)(message: ProtocolMessage): Generators#Generator[Option[mTT.Resource], Unit, Unit]
   def subscribe(cnxn : ConcreteHL.PortableAgentCnxn)(message: ProtocolMessage): Generators#Generator[Option[mTT.Resource], Unit, Unit]
   def put(cnxn : ConcreteHL.PortableAgentCnxn)(message: ProtocolMessage): Unit
+  def publish(cnxn : ConcreteHL.PortableAgentCnxn)(message: ProtocolMessage): Unit
 }
 
 class KVDBNodeWrapper(kvdbNode: Being.AgentKVDBNode[PersistedKVDBNodeRequest, PersistedKVDBNodeResponse])
@@ -29,6 +30,10 @@ class KVDBNodeWrapper(kvdbNode: Being.AgentKVDBNode[PersistedKVDBNodeRequest, Pe
 
   override def put(cnxn: ConcreteHL.PortableAgentCnxn)(message: ProtocolMessage): Unit = {
     reset { kvdbNode.put(toAgentCnxn(cnxn))(message.toCnxnCtxtLabel, message.toGround) }
+  }
+
+  override def publish(cnxn: ConcreteHL.PortableAgentCnxn)(message: ProtocolMessage): Unit = {
+    reset { kvdbNode.publish(toAgentCnxn(cnxn))(message.toCnxnCtxtLabel, message.toGround) }
   }
 
   private def toAgentCnxn(cnxn: ConcreteHL.PortableAgentCnxn): acT.AgentCnxn = {

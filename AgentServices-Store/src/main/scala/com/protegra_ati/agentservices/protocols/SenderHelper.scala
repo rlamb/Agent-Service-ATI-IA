@@ -3,6 +3,8 @@ package com.protegra_ati.agentservices.protocols
 import com.biosimilarity.evaluator.distribution.ConcreteHL
 import com.protegra_ati.agentservices.protocols.msgs._
 import java.util.UUID
+import scala.concurrent._
+import ExecutionContext.Implicits.global
 
 trait SenderHelper {
   def sendBeginIntroductionResponse(
@@ -23,7 +25,10 @@ trait SenderHelper {
     bRejectReason: Option[String]): Unit = {
 
     val response = new BeginIntroductionResponse(responseId, Some(accepted), aRejectReason, bRejectReason)
-    node.put(cnxn)(response)
+
+    future {
+      node.put(cnxn)(response)
+    }
   }
 
   def sendGetIntroductionProfileRequest(
@@ -34,7 +39,9 @@ trait SenderHelper {
     val requestId = UUID.randomUUID().toString
     val request = new GetIntroductionProfileRequest(Some(requestId), Some(responseCnxn))
 
-    node.put(cnxn)(request)
+    future {
+      node.publish(cnxn)(request)
+    }
 
     requestId
   }
@@ -45,7 +52,10 @@ trait SenderHelper {
     responseId: String): Unit = {
 
     val response = new GetIntroductionProfileResponse(responseId)
-    node.put(cnxn)(response)
+
+    future {
+      node.put(cnxn)(response)
+    }
   }
 
   def sendIntroductionRequest(
@@ -57,7 +67,9 @@ trait SenderHelper {
     val requestId = UUID.randomUUID().toString
     val request = new IntroductionRequest(Some(requestId), Some(responseCnxn), message)
 
-    node.put(cnxn)(request)
+    future {
+      node.publish(cnxn)(request)
+    }
 
     requestId
   }
@@ -72,7 +84,9 @@ trait SenderHelper {
     val connectId = UUID.randomUUID().toString
     val response = new IntroductionResponse(responseId, Some(accepted), rejectReason, Some(connectId))
 
-    node.put(cnxn)(response)
+    future {
+      node.put(cnxn)(response)
+    }
 
     connectId
   }
@@ -85,6 +99,9 @@ trait SenderHelper {
     readCnxn: ConcreteHL.PortableAgentCnxn): Unit = {
 
     val connect = new Connect(connectId, Some(writeCnxn), Some(readCnxn))
-    node.put(cnxn)(connect)
+
+    future {
+      node.put(cnxn)(connect)
+    }
   }
 }

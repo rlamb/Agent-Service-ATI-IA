@@ -17,7 +17,11 @@ trait BaseProtocols2 extends ListenerHelper with SenderHelper {
 
   def genericIntroducer(node: NodeWrapper, cnxn: ConcreteHL.PortableAgentCnxn): Unit = {
     // listen for BeginIntroductionRequest message
-    listenBeginIntroductionRequest(node, cnxn, beginIntroductionRequestHandler(node, _))
+    listenSubscribe(
+      node,
+      cnxn,
+      new BeginIntroductionRequest(),
+      handleBeginIntroductionRequest(node, _: Either[Throwable, BeginIntroductionRequest]))
   }
 
   def genericIntroduced(
@@ -36,13 +40,21 @@ trait BaseProtocols2 extends ListenerHelper with SenderHelper {
     privateRspCnxn: ConcreteHL.PortableAgentCnxn) {
 
     // listen for GetIntroductionProfileRequest message
-    listenGetIntroductionProfileRequest(node, cnxn, getIntroductionProfileRequestHandler(node, _))
+    listenSubscribe(
+      node,
+      cnxn,
+      new GetIntroductionProfileRequest(),
+      handleGetIntroductionProfileRequest(node, _: Either[Throwable, GetIntroductionProfileRequest]))
 
     // listen for IntroductionRequest message
-    listenIntroductionRequest(node, cnxn, introductionRequestHandler(node, cnxn, privateRqCnxn, privateRspCnxn, _))
+    listenSubscribe(
+      node,
+      cnxn,
+      new IntroductionRequest(),
+      handleIntroductionRequest(node, cnxn, privateRqCnxn, privateRspCnxn, _: Either[Throwable, IntroductionRequest]))
   }
 
-  def beginIntroductionRequestHandler(node: NodeWrapper, result: Either[Throwable, BeginIntroductionRequest]): Unit = {
+  def handleBeginIntroductionRequest(node: NodeWrapper, result: Either[Throwable, BeginIntroductionRequest]): Unit = {
     result match {
       case Right(biRq) => {
         // send GetIntroductionProfileRequest messages
@@ -50,12 +62,12 @@ trait BaseProtocols2 extends ListenerHelper with SenderHelper {
         val bGetIntroProfileRqId = sendGetIntroductionProfileRequest(node, biRq.bRequestCnxn.get, biRq.bResponseCnxn.get)
 
         // listen for GetIntroductionProfileResponse messages
-        listenGetIntroductionProfileResponses(
+        listenJoin(
           node,
           biRq.aResponseCnxn.get,
           biRq.bResponseCnxn.get,
-          aGetIntroProfileRqId,
-          bGetIntroProfileRqId) onComplete {
+          new GetIntroductionProfileResponse(aGetIntroProfileRqId),
+          new GetIntroductionProfileResponse(bGetIntroProfileRqId)) onComplete {
 
           case Success((agipRsp, bgipRsp)) => {
             // send IntroductionRequest messages
@@ -63,12 +75,12 @@ trait BaseProtocols2 extends ListenerHelper with SenderHelper {
             val bIntroRqId = sendIntroductionRequest(node, biRq.bRequestCnxn.get, biRq.bResponseCnxn.get, biRq.bMessage)
 
             // listen for IntroductionResponse messages
-            listenIntroductionResponses(
+            listenJoin(
               node,
               biRq.aResponseCnxn.get,
               biRq.bResponseCnxn.get,
-              aIntroRqId,
-              bIntroRqId) onComplete {
+              new IntroductionResponse(aIntroRqId),
+              new IntroductionResponse(bIntroRqId)) onComplete {
 
               case Success((aiRsp, biRsp)) => {
                 // check whether A and B accepted
@@ -107,7 +119,7 @@ trait BaseProtocols2 extends ListenerHelper with SenderHelper {
     }
   }
 
-  def getIntroductionProfileRequestHandler(node: NodeWrapper, result: Either[Throwable, GetIntroductionProfileRequest]): Unit = {
+  def handleGetIntroductionProfileRequest(node: NodeWrapper, result: Either[Throwable, GetIntroductionProfileRequest]): Unit = {
     result match {
       case Right(gipRq) => {
         // TODO: Load introduction profile
@@ -120,7 +132,7 @@ trait BaseProtocols2 extends ListenerHelper with SenderHelper {
     }
   }
 
-  def introductionRequestHandler(
+  def handleIntroductionRequest(
     node: NodeWrapper,
     cnxn: ConcreteHL.PortableAgentCnxn,
     privateRqCnxn: ConcreteHL.PortableAgentCnxn,
@@ -134,7 +146,7 @@ trait BaseProtocols2 extends ListenerHelper with SenderHelper {
         val uiIntroRqId = sendIntroductionRequest(node, privateRqCnxn, privateRspCnxn, iRq.message)
 
         // listen for IntroductionResponse message
-        listenIntroductionResponse(node, privateRspCnxn, uiIntroRqId) onComplete {
+        listen(node, privateRspCnxn, new IntroductionResponse(uiIntroRqId)) onComplete {
           case Success(iRsp) => {
             // send IntroductionResponse message
             val connectId = sendIntroductionResponse(
@@ -146,7 +158,7 @@ trait BaseProtocols2 extends ListenerHelper with SenderHelper {
 
             if (iRsp.accepted.get) {
               // listen for Connect message
-              listenConnect(node, cnxn, connectId) onComplete {
+              listen(node, cnxn, new Connect(connectId)) onComplete {
                 case Success(c) => {
                   // TODO: Store the new cnxns
                 }

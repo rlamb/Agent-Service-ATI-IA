@@ -1,7 +1,6 @@
 package com.protegra_ati.agentservices.protocols
 
 import com.biosimilarity.evaluator.distribution.ConcreteHL
-import com.biosimilarity.evaluator.distribution.diesel.DieselEngineScope._
 import com.protegra_ati.agentservices.protocols.msgs._
 import com.protegra_ati.agentservices.store.{AgentTestNode, TestNodeWrapper}
 import java.net.URI
@@ -10,7 +9,6 @@ import org.specs2.mutable._
 import org.specs2.specification.Scope
 import scala.concurrent._
 import scala.concurrent.duration._
-import scala.util.continuations._
 
 class IntroductionUnitTest extends SpecificationWithJUnit with Tags {
   class ConcreteBaseProtocols extends BaseProtocols2
@@ -50,41 +48,9 @@ class IntroductionUnitTest extends SpecificationWithJUnit with Tags {
     baseProtocols.genericIntroduced(node, zaCnxn, auiCnxn, uiaCnxn)
     baseProtocols.genericIntroduced(node, zbCnxn, buiCnxn, uibCnxn)
 
-    val fAIRq = listenIntroductionRequest(auiCnxn)
-    val fBIRq = listenIntroductionRequest(buiCnxn)
-    val fBIRsp = listenBeginIntroductionResponse(zuiCnxn, beginIntroductionRequest.requestId.get)
-
-    def listenIntroductionRequest(cnxn: ConcreteHL.PortableAgentCnxn): Future[IntroductionRequest] = {
-      val p = promise[IntroductionRequest]()
-
-      reset {
-        for (e <- node.get(cnxn)(new IntroductionRequest())) {
-          e match {
-            case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, message: IntroductionRequest))) => p.success(message)
-            case _ => p.failure(new Exception("unexpected protocol message"))
-          }
-          () // Used to return in continuation
-        }
-      }
-
-      p.future
-    }
-
-    def listenBeginIntroductionResponse(cnxn: ConcreteHL.PortableAgentCnxn, responseId: String): Future[BeginIntroductionResponse] = {
-      val p = promise[BeginIntroductionResponse]()
-
-      reset {
-        for (e <- node.get(cnxn)(new BeginIntroductionResponse(responseId))) {
-          e match {
-            case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, message: BeginIntroductionResponse))) => p.success(message)
-            case _ => p.failure(new Exception("unexpected protocol message"))
-          }
-          () // Used to return in continuation
-        }
-      }
-
-      p.future
-    }
+    val fAIRq = baseProtocols.listen(node, auiCnxn, new IntroductionRequest())
+    val fBIRq = baseProtocols.listen(node, buiCnxn, new IntroductionRequest())
+    val fBIRsp = baseProtocols.listen(node, zuiCnxn, new BeginIntroductionResponse(beginIntroductionRequest.requestId.get))
   }
 
   sequential
@@ -92,7 +58,7 @@ class IntroductionUnitTest extends SpecificationWithJUnit with Tags {
 
   "Introduction protocol" should {
     "Send A's UI an introduction request" in new Setup {
-      node.put(uizCnxn)(beginIntroductionRequest)
+      node.publish(uizCnxn)(beginIntroductionRequest)
       val aIntroductionRequest = Await.result(fAIRq, Duration(10, "seconds"))
       val bIntroductionRequest = Await.result(fBIRq, Duration(10, "seconds"))
       val aIntroductionResponse = new IntroductionResponse(aIntroductionRequest.requestId.get, Some(true))
@@ -107,7 +73,7 @@ class IntroductionUnitTest extends SpecificationWithJUnit with Tags {
     }
 
     "Send B's UI an introduction request" in new Setup {
-      node.put(uizCnxn)(beginIntroductionRequest)
+      node.publish(uizCnxn)(beginIntroductionRequest)
       val aIntroductionRequest = Await.result(fAIRq, Duration(10, "seconds"))
       val bIntroductionRequest = Await.result(fBIRq, Duration(10, "seconds"))
       val aIntroductionResponse = new IntroductionResponse(aIntroductionRequest.requestId.get, Some(true))
@@ -122,7 +88,7 @@ class IntroductionUnitTest extends SpecificationWithJUnit with Tags {
     }
 
     "Return approved if A and B accept" in new Setup {
-      node.put(uizCnxn)(beginIntroductionRequest)
+      node.publish(uizCnxn)(beginIntroductionRequest)
       val aIntroductionRequest = Await.result(fAIRq, Duration(10, "seconds"))
       val bIntroductionRequest = Await.result(fBIRq, Duration(10, "seconds"))
       val aIntroductionResponse = new IntroductionResponse(aIntroductionRequest.requestId.get, Some(true))
@@ -138,7 +104,7 @@ class IntroductionUnitTest extends SpecificationWithJUnit with Tags {
     }
 
     "Return not approved if A accepts and B rejects" in new Setup {
-      node.put(uizCnxn)(beginIntroductionRequest)
+      node.publish(uizCnxn)(beginIntroductionRequest)
       val aIntroductionRequest = Await.result(fAIRq, Duration(10, "seconds"))
       val bIntroductionRequest = Await.result(fBIRq, Duration(10, "seconds"))
       val aIntroductionResponse = new IntroductionResponse(aIntroductionRequest.requestId.get, Some(true))
@@ -154,7 +120,7 @@ class IntroductionUnitTest extends SpecificationWithJUnit with Tags {
     }
 
     "Return not approved if A rejects and B accepts" in new Setup {
-      node.put(uizCnxn)(beginIntroductionRequest)
+      node.publish(uizCnxn)(beginIntroductionRequest)
       val aIntroductionRequest = Await.result(fAIRq, Duration(10, "seconds"))
       val bIntroductionRequest = Await.result(fBIRq, Duration(10, "seconds"))
       val aIntroductionResponse = new IntroductionResponse(aIntroductionRequest.requestId.get, Some(false), Some(aRejectReason))
@@ -170,7 +136,7 @@ class IntroductionUnitTest extends SpecificationWithJUnit with Tags {
     }
 
     "Return not approved if A and B reject" in new Setup {
-      node.put(uizCnxn)(beginIntroductionRequest)
+      node.publish(uizCnxn)(beginIntroductionRequest)
       val aIntroductionRequest = Await.result(fAIRq, Duration(10, "seconds"))
       val bIntroductionRequest = Await.result(fBIRq, Duration(10, "seconds"))
       val aIntroductionResponse = new IntroductionResponse(aIntroductionRequest.requestId.get, Some(false), Some(aRejectReason))
