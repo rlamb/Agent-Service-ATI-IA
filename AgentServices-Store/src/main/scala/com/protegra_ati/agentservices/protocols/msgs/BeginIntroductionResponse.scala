@@ -9,4 +9,8 @@ case class BeginIntroductionResponse(
   extends ProtocolResponseMessage {
 
   def this(responseId: String) = this(responseId, None, None, None)
+
+  override def isValid: Boolean = {
+    accepted != None
+  }
 }

@@ -15,4 +15,13 @@ case class BeginIntroductionRequest(
   extends ProtocolRequestMessage {
 
   def this() = this(None, None, None, None, None, None, None, None)
+
+  override def isValid: Boolean = {
+    requestId != None &&
+      responseCnxn != None &&
+      aRequestCnxn != None &&
+      aResponseCnxn != None &&
+      bRequestCnxn != None &&
+      bResponseCnxn != None
+  }
 }

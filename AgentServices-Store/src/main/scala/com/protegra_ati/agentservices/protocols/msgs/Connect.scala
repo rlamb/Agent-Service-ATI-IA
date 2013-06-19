@@ -11,4 +11,9 @@ case class Connect(
 
   def this(connectId: String) = this(connectId, None, None)
   override val innerLabel = "connectId(\"" + connectId + "\")"
+
+  override def isValid: Boolean = {
+    writeCnxn != None &&
+      readCnxn != None
+  }
 }

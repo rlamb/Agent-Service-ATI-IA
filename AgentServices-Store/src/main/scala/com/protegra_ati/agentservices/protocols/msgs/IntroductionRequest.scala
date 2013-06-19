@@ -10,4 +10,9 @@ case class IntroductionRequest(
   extends ProtocolRequestMessage {
 
   def this() = this(None, None, None)
+
+  override def isValid: Boolean = {
+    requestId != None &&
+      responseCnxn != None
+  }
 }

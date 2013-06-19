@@ -16,4 +16,6 @@ trait ProtocolMessage {
   def toGround: mTT.Ground = {
     mTT.Ground(ConcreteHL.InsertContent(label, Nil, this))
   }
+
+  def isValid: Boolean
 }

@@ -21,7 +21,10 @@ trait ListenerHelper {
         for (e <- node.get(cnxn)(labelMessage)) {
           e match {
             case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, message: T))) => {
-              // TODO: Validate message
+              if (!message.isValid) {
+                throw new Exception("invalid protocol message")
+              }
+
               result = Some(message)
             }
             case _ => throw new Exception("unexpected protocol message")
@@ -30,7 +33,7 @@ trait ListenerHelper {
       }
 
       if (result == None) {
-        throw new Exception("no value found")
+        throw new Exception("no protocol message found")
       }
 
       result.get
@@ -54,7 +57,10 @@ trait ListenerHelper {
               Some(mTT.Ground(ConcreteHL.InsertContent(_, _, messageA: T))),
               Some(mTT.Ground(ConcreteHL.InsertContent(_, _, messageB: U)))) => {
 
-              // TODO: Validate messages
+              if (!messageA.isValid || !messageB.isValid) {
+                throw new Exception("invalid protocol message")
+              }
+
               result = Some((messageA, messageB))
             }
             case _ => throw new Exception("unexpected protocol message")
@@ -63,7 +69,7 @@ trait ListenerHelper {
       }
 
       if (result == None) {
-        throw new Exception("no value found")
+        throw new Exception("no protocol message found")
       }
 
       result.get
@@ -81,8 +87,11 @@ trait ListenerHelper {
         for (e <- node.get(cnxn)(labelMessage)) {
           e match {
             case Some(mTT.Ground(ConcreteHL.InsertContent(_, _, message: T))) => {
-              // TODO: Validate message
-              handler(Right(message))
+              if (!message.isValid) {
+                handler(Left(new Exception("invalid protocol message")))
+              } else {
+                handler(Right(message))
+              }
             }
             case _ => {
               handler(Left(new Exception("unexpected protocol message")))

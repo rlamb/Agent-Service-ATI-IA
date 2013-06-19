@@ -9,4 +9,9 @@ case class GetIntroductionProfileRequest(
   extends ProtocolRequestMessage {
 
   def this() = this(None, None)
+
+  override def isValid: Boolean = {
+    requestId != None &&
+      responseCnxn != None
+  }
 }
