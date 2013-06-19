@@ -11,18 +11,9 @@ trait SenderHelper {
     node: NodeWrapper,
     cnxn: ConcreteHL.PortableAgentCnxn,
     responseId: String,
-    accepted: Boolean): Unit = {
-
-    sendBeginIntroductionResponse(node, cnxn, responseId, accepted, None, None)
-  }
-
-  def sendBeginIntroductionResponse(
-    node: NodeWrapper,
-    cnxn: ConcreteHL.PortableAgentCnxn,
-    responseId: String,
     accepted: Boolean,
-    aRejectReason: Option[String],
-    bRejectReason: Option[String]): Unit = {
+    aRejectReason: Option[String] = None,
+    bRejectReason: Option[String] = None): Unit = {
 
     val response = new BeginIntroductionResponse(responseId, Some(accepted), aRejectReason, bRejectReason)
 
