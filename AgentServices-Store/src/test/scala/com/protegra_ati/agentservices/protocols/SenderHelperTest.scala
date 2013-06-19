@@ -10,7 +10,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 class SenderHelperTest extends SpecificationWithJUnit with Tags {
-  class ConcreteBaseProtocols extends BaseProtocols2
+  class ConcreteBaseProtocols extends BaseProtocols
 
   class Setup extends Scope {
     val node = new TestNodeWrapper(new AgentTestNode)
@@ -82,14 +82,16 @@ class SenderHelperTest extends SpecificationWithJUnit with Tags {
     "send a message" in new Setup() {
       val responseId = "responseId"
       val accepted = false
+      val aliasName = "aliasName"
       val rejectReason = "rejectReason"
 
-      val connectId = baseProtocols.sendIntroductionResponse(node, cnxn, responseId, accepted, Some(rejectReason))
+      val connectId = baseProtocols.sendIntroductionResponse(node, cnxn, responseId, accepted, Some(aliasName), Some(rejectReason))
       val f = baseProtocols.listen[IntroductionResponse](node, cnxn, new IntroductionResponse(responseId))
       val result = Await.result(f, Duration(10, "seconds"))
 
       result.responseId must be_==(responseId) and
         (result.accepted must be_==(Some(false))) and
+        (result.aliasName must be_==(Some(aliasName))) and
         (result.rejectReason must be_==(Some(rejectReason))) and
         (result.connectId must be_==(Some(connectId)))
     }
@@ -98,14 +100,16 @@ class SenderHelperTest extends SpecificationWithJUnit with Tags {
   "SenderHelper.sendConnect" should {
     "send a message" in new Setup() {
       val connectId = "connectId"
+      val aliasName = "aliasName"
       val writeCnxn = new ConcreteHL.PortableAgentCnxn(new URI("b"), "bc", new URI("c"))
       val readCnxn = new ConcreteHL.PortableAgentCnxn(new URI("c"), "cb", new URI("b"))
 
-      baseProtocols.sendConnect(node, cnxn, connectId, writeCnxn, readCnxn)
+      baseProtocols.sendConnect(node, cnxn, connectId, Some(aliasName), writeCnxn, readCnxn)
       val f = baseProtocols.listen[Connect](node, cnxn, new Connect(connectId))
       val result = Await.result(f, Duration(10, "seconds"))
 
       result.connectId must be_==(connectId) and
+        (result.aliasName must be_==(Some(aliasName))) and
         (result.writeCnxn must be_==(Some(writeCnxn))) and
         (result.readCnxn must be_==(Some(readCnxn)))
     }

@@ -70,10 +70,11 @@ trait SenderHelper {
     cnxn: ConcreteHL.PortableAgentCnxn,
     responseId: String,
     accepted: Boolean,
+    aliasName: Option[String],
     rejectReason: Option[String]): String = {
 
     val connectId = UUID.randomUUID().toString
-    val response = new IntroductionResponse(responseId, Some(accepted), rejectReason, Some(connectId))
+    val response = new IntroductionResponse(responseId, Some(accepted), aliasName, rejectReason, Some(connectId))
 
     future {
       node.put(cnxn)(response)
@@ -86,10 +87,11 @@ trait SenderHelper {
     node: NodeWrapper,
     cnxn: ConcreteHL.PortableAgentCnxn,
     connectId: String,
+    aliasName: Option[String],
     writeCnxn: ConcreteHL.PortableAgentCnxn,
     readCnxn: ConcreteHL.PortableAgentCnxn): Unit = {
 
-    val connect = new Connect(connectId, Some(writeCnxn), Some(readCnxn))
+    val connect = new Connect(connectId, aliasName, Some(writeCnxn), Some(readCnxn))
 
     future {
       node.put(cnxn)(connect)

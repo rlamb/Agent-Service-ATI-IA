@@ -4,12 +4,13 @@ import com.biosimilarity.evaluator.distribution.ConcreteHL
 
 case class Connect(
   connectId: String,
+  aliasName: Option[String],
   writeCnxn: Option[ConcreteHL.PortableAgentCnxn],
   readCnxn: Option[ConcreteHL.PortableAgentCnxn])
 
   extends ProtocolMessage {
 
-  def this(connectId: String) = this(connectId, None, None)
+  def this(connectId: String) = this(connectId, None, None, None)
   override val innerLabel = "connectId(\"" + connectId + "\")"
 
   override def isValid: Boolean = {

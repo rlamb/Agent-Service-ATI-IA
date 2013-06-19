@@ -13,7 +13,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 class ListenerHelperTest extends SpecificationWithJUnit with Tags {
-  class ConcreteBaseProtocols extends BaseProtocols2
+  class ConcreteBaseProtocols extends BaseProtocols
 
   case class TestMessage(id: Option[UUID]) extends ProtocolMessage {
     def this() = this(None)

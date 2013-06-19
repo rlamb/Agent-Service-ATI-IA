@@ -11,7 +11,7 @@ import scala.concurrent._
 import scala.concurrent.duration._
 
 class IntroductionUnitTest extends SpecificationWithJUnit with Tags {
-  class ConcreteBaseProtocols extends BaseProtocols2
+  class ConcreteBaseProtocols extends BaseProtocols
 
   class Setup extends Scope {
     val node = new TestNodeWrapper(new AgentTestNode)
@@ -61,8 +61,8 @@ class IntroductionUnitTest extends SpecificationWithJUnit with Tags {
       node.publish(uizCnxn)(beginIntroductionRequest)
       val aIntroductionRequest = Await.result(fAIRq, Duration(10, "seconds"))
       val bIntroductionRequest = Await.result(fBIRq, Duration(10, "seconds"))
-      val aIntroductionResponse = new IntroductionResponse(aIntroductionRequest.requestId.get, Some(true))
-      val bIntroductionResponse = new IntroductionResponse(bIntroductionRequest.requestId.get, Some(true))
+      val aIntroductionResponse = new IntroductionResponse(aIntroductionRequest.requestId.get, Some(true), None, None, None)
+      val bIntroductionResponse = new IntroductionResponse(bIntroductionRequest.requestId.get, Some(true), None, None, None)
       node.put(aIntroductionRequest.responseCnxn.get)(aIntroductionResponse)
       node.put(bIntroductionRequest.responseCnxn.get)(bIntroductionResponse)
       val beginIntroductionResponse = Await.result(fBIRsp, Duration(10, "seconds"))
@@ -76,8 +76,8 @@ class IntroductionUnitTest extends SpecificationWithJUnit with Tags {
       node.publish(uizCnxn)(beginIntroductionRequest)
       val aIntroductionRequest = Await.result(fAIRq, Duration(10, "seconds"))
       val bIntroductionRequest = Await.result(fBIRq, Duration(10, "seconds"))
-      val aIntroductionResponse = new IntroductionResponse(aIntroductionRequest.requestId.get, Some(true))
-      val bIntroductionResponse = new IntroductionResponse(bIntroductionRequest.requestId.get, Some(true))
+      val aIntroductionResponse = new IntroductionResponse(aIntroductionRequest.requestId.get, Some(true), None, None, None)
+      val bIntroductionResponse = new IntroductionResponse(bIntroductionRequest.requestId.get, Some(true), None, None, None)
       node.put(aIntroductionRequest.responseCnxn.get)(aIntroductionResponse)
       node.put(bIntroductionRequest.responseCnxn.get)(bIntroductionResponse)
       val beginIntroductionResponse = Await.result(fBIRsp, Duration(10, "seconds"))
@@ -91,8 +91,8 @@ class IntroductionUnitTest extends SpecificationWithJUnit with Tags {
       node.publish(uizCnxn)(beginIntroductionRequest)
       val aIntroductionRequest = Await.result(fAIRq, Duration(10, "seconds"))
       val bIntroductionRequest = Await.result(fBIRq, Duration(10, "seconds"))
-      val aIntroductionResponse = new IntroductionResponse(aIntroductionRequest.requestId.get, Some(true))
-      val bIntroductionResponse = new IntroductionResponse(bIntroductionRequest.requestId.get, Some(true))
+      val aIntroductionResponse = new IntroductionResponse(aIntroductionRequest.requestId.get, Some(true), None, None, None)
+      val bIntroductionResponse = new IntroductionResponse(bIntroductionRequest.requestId.get, Some(true), None, None, None)
       node.put(aIntroductionRequest.responseCnxn.get)(aIntroductionResponse)
       node.put(bIntroductionRequest.responseCnxn.get)(bIntroductionResponse)
       val beginIntroductionResponse = Await.result(fBIRsp, Duration(10, "seconds"))
@@ -107,8 +107,8 @@ class IntroductionUnitTest extends SpecificationWithJUnit with Tags {
       node.publish(uizCnxn)(beginIntroductionRequest)
       val aIntroductionRequest = Await.result(fAIRq, Duration(10, "seconds"))
       val bIntroductionRequest = Await.result(fBIRq, Duration(10, "seconds"))
-      val aIntroductionResponse = new IntroductionResponse(aIntroductionRequest.requestId.get, Some(true))
-      val bIntroductionResponse = new IntroductionResponse(bIntroductionRequest.requestId.get, Some(false), Some(bRejectReason))
+      val aIntroductionResponse = new IntroductionResponse(aIntroductionRequest.requestId.get, Some(true), None, None, None)
+      val bIntroductionResponse = new IntroductionResponse(bIntroductionRequest.requestId.get, Some(false), None, Some(bRejectReason), None)
       node.put(aIntroductionRequest.responseCnxn.get)(aIntroductionResponse)
       node.put(bIntroductionRequest.responseCnxn.get)(bIntroductionResponse)
       val beginIntroductionResponse = Await.result(fBIRsp, Duration(10, "seconds"))
@@ -123,8 +123,8 @@ class IntroductionUnitTest extends SpecificationWithJUnit with Tags {
       node.publish(uizCnxn)(beginIntroductionRequest)
       val aIntroductionRequest = Await.result(fAIRq, Duration(10, "seconds"))
       val bIntroductionRequest = Await.result(fBIRq, Duration(10, "seconds"))
-      val aIntroductionResponse = new IntroductionResponse(aIntroductionRequest.requestId.get, Some(false), Some(aRejectReason))
-      val bIntroductionResponse = new IntroductionResponse(bIntroductionRequest.requestId.get, Some(true))
+      val aIntroductionResponse = new IntroductionResponse(aIntroductionRequest.requestId.get, Some(false), None, Some(aRejectReason), None)
+      val bIntroductionResponse = new IntroductionResponse(bIntroductionRequest.requestId.get, Some(true), None, None, None)
       node.put(aIntroductionRequest.responseCnxn.get)(aIntroductionResponse)
       node.put(bIntroductionRequest.responseCnxn.get)(bIntroductionResponse)
       val beginIntroductionResponse = Await.result(fBIRsp, Duration(10, "seconds"))
@@ -139,8 +139,8 @@ class IntroductionUnitTest extends SpecificationWithJUnit with Tags {
       node.publish(uizCnxn)(beginIntroductionRequest)
       val aIntroductionRequest = Await.result(fAIRq, Duration(10, "seconds"))
       val bIntroductionRequest = Await.result(fBIRq, Duration(10, "seconds"))
-      val aIntroductionResponse = new IntroductionResponse(aIntroductionRequest.requestId.get, Some(false), Some(aRejectReason))
-      val bIntroductionResponse = new IntroductionResponse(bIntroductionRequest.requestId.get, Some(false), Some(bRejectReason))
+      val aIntroductionResponse = new IntroductionResponse(aIntroductionRequest.requestId.get, Some(false), None, Some(aRejectReason), None)
+      val bIntroductionResponse = new IntroductionResponse(bIntroductionRequest.requestId.get, Some(false), None, Some(bRejectReason), None)
       node.put(aIntroductionRequest.responseCnxn.get)(aIntroductionResponse)
       node.put(bIntroductionRequest.responseCnxn.get)(bIntroductionResponse)
       val beginIntroductionResponse = Await.result(fBIRsp, Duration(10, "seconds"))
@@ -150,8 +150,5 @@ class IntroductionUnitTest extends SpecificationWithJUnit with Tags {
         (beginIntroductionResponse.aRejectReason must be_==(Some(aRejectReason))) and
         (beginIntroductionResponse.bRejectReason must be_==(Some(bRejectReason)))
     }
-
-    // TODO: Test - Pass in invalid begin introduction request
-    // TODO: Test - Pass in invalid introduction response
   }
 }
