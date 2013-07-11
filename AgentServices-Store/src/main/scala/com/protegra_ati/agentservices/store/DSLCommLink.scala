@@ -476,7 +476,45 @@ object DSLCommLink
   }
 }
 
-object DSLCommLinkCtor extends Serializable {
+trait DSLCommLinkConfiguration {
+  self : EvalConfig =>
+  def clientHostName() : String = {
+    try {
+      evalConfig().getString( "DSLCommLinkClientHost" )
+    }
+    catch {
+      case e : Throwable => "localhost" 
+    }
+  }
+  def clientPort() : Int = {
+    try {
+      evalConfig().getInt( "DSLCommLinkClientPort" )
+    }
+    catch {
+      case e : Throwable => 5672
+    }
+  }
+  def serverHostName() : String = {
+    try {
+      evalConfig().getString( "DSLCommLinkServerHost" )
+    } 
+    catch {
+      case e : Throwable => "localhost"
+    }
+  }
+  def serverPort() : Int = {
+    try {
+      evalConfig().getInt( "DSLCommLinkServerPort" )
+    }
+    catch {
+      case e : Throwable => 5672
+    }
+  }
+}
+
+object DSLCommLinkCtor extends EvalConfig
+with DSLCommLinkConfiguration
+with Serializable {
   import DSLCommLink._   
   import Being._
   import PersistedKVDBNodeFactory._
@@ -489,61 +527,99 @@ object DSLCommLinkCtor extends Serializable {
     def evalRequestLabel(
       majorVersion : String = "0", minorVersion : String = "1"
     )(
-      sessionId : String
+      sessionId : Either[String,String]
     ) = {
+      // BUGBUG : lgm -- find a java regex pattern that will pickout
+      // prolog variables
+      val sessionTerm =
+        sessionId match {
+          case Left( sessIdStr ) => {
+            "\"" + sessIdStr + "\""
+          }
+          case Right( sessIdVar ) => {
+            sessIdVar
+          }
+        }
       fromTermString(
         "evalRequestLabel( majorVersion( \""
         + majorVersion
         + "\" ), minorVersion( \""
         + minorVersion
-        + "\"), sessionId( \""
-        + sessionId
-        + "\" ) )"
+        + "\"), sessionId( "
+        + sessionTerm
+        + " ) )"
       )
     }
     def evalResponseLabel(
       majorVersion : String = "0", minorVersion : String = "1"
     )(
-      sessionId : String
+      sessionId : Either[String,String]
     ) = {
+      val sessionTerm =
+        sessionId match {
+          case Left( sessIdStr ) => {
+            "\"" + sessIdStr + "\""
+          }
+          case Right( sessIdVar ) => {
+            sessIdVar
+          }
+        }
       fromTermString(
         "evalResponseLabel( majorVersion( \""
         + majorVersion
         + "\" ), minorVersion( \""
         + minorVersion
-        + "\"), sessionId( \""
-        + sessionId
-        + "\" ) )"
+        + "\"), sessionId( "
+        + sessionTerm
+        + " ) )"
       )
     }
     def adminRequestLabel(
       majorVersion : String = "0", minorVersion : String = "1"
     )(
-      sessionId : String
+      sessionId : Either[String,String]
     ) = {
+      val sessionTerm =
+        sessionId match {
+          case Left( sessIdStr ) => {
+            "\"" + sessIdStr + "\""
+          }
+          case Right( sessIdVar ) => {
+            sessIdVar
+          }
+        }
       fromTermString(
         "adminRequestLabel( majorVersion( \""
         + majorVersion
         + "\" ), minorVersion( \""
         + minorVersion
-        + "\"), sessionId( \""
-        + sessionId
-        + "\" ) )"
+        + "\"), sessionId( "
+        + sessionTerm
+        + " ) )"
       )
     }
     def adminResponseLabel(
       majorVersion : String = "0", minorVersion : String = "1"
     )(
-      sessionId : String
+      sessionId : Either[String,String]
     ) = {
+      val sessionTerm =
+        sessionId match {
+          case Left( sessIdStr ) => {
+            "\"" + sessIdStr + "\""
+          }
+          case Right( sessIdVar ) => {
+            sessIdVar
+          }
+        }
       fromTermString(
         "adminResponseLabel( majorVersion( \""
         + majorVersion
         + "\" ), minorVersion( \""
         + minorVersion
-        + "\"), sessionId( \""
-        + sessionId
-        + "\" ) )"
+        + "\"), sessionId( "
+        + sessionTerm
+        + " ) )"
       )
     }
   }
@@ -596,8 +672,8 @@ object DSLCommLinkCtor extends Serializable {
   }
 
   def link[ReqBody <: PersistedKVDBNodeRequest, RspBody <: PersistedKVDBNodeResponse](
-    localHost : String = "localhost", localPort : Int = 5672,
-    remoteHost : String = "localhost", remotePort : Int = 5672
+    localHost : String = serverHostName, localPort : Int = serverPort,
+    remoteHost : String = clientHostName, remotePort : Int = clientPort
   )( flip : Boolean = false ) : EvaluationRequestChannel[ReqBody,RspBody] = {
     val Left( client ) = 
       setup[ReqBody,RspBody]( localHost, localPort, remoteHost, remotePort )( false, flip )
@@ -605,8 +681,8 @@ object DSLCommLinkCtor extends Serializable {
   }
 
   def biLink[ReqBody <: PersistedKVDBNodeRequest, RspBody <: PersistedKVDBNodeResponse](
-    localHost : String = "localhost", localPort : Int = 5672,
-    remoteHost : String = "localhost", remotePort : Int = 5672
+    localHost : String = serverHostName, localPort : Int = serverPort,
+    remoteHost : String = clientHostName, remotePort : Int = clientPort
   ) : ( EvaluationRequestChannel[ReqBody,RspBody], EvaluationRequestChannel[ReqBody,RspBody] ) = {
     val Right( ( client, server ) ) = 
       setup[ReqBody,RspBody]( localHost, localPort, remoteHost, remotePort )( true )
@@ -614,8 +690,8 @@ object DSLCommLinkCtor extends Serializable {
   }
 
   def stdLink(
-    localHost : String = "localhost", localPort : Int = 5672,
-    remoteHost : String = "localhost", remotePort : Int = 5672
+    localHost : String = serverHostName, localPort : Int = serverPort,
+    remoteHost : String = clientHostName, remotePort : Int = clientPort
   )( flip : Boolean = false ) : StdEvaluationRequestChannel = {
     val Left( client ) = 
       setup[PersistedKVDBNodeRequest,PersistedKVDBNodeResponse](
@@ -625,8 +701,8 @@ object DSLCommLinkCtor extends Serializable {
   }
 
   def stdBiLink(
-    localHost : String = "localhost", localPort : Int = 5672,
-    remoteHost : String = "localhost", remotePort : Int = 5672
+    localHost : String = serverHostName, localPort : Int = serverPort,
+    remoteHost : String = clientHostName, remotePort : Int = clientPort
   ) : ( StdEvaluationRequestChannel, StdEvaluationRequestChannel ) = {
     val Right( ( client, server ) ) = 
       setup[PersistedKVDBNodeRequest,PersistedKVDBNodeResponse]( localHost, localPort, remoteHost, remotePort )( true )

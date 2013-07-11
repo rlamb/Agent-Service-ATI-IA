@@ -24,6 +24,7 @@ import com.typesafe.config._
 
 import javax.crypto._
 import javax.crypto.spec.SecretKeySpec
+import java.security._
 
 import java.net.URI
 import java.util.Date
@@ -32,7 +33,7 @@ import java.util.UUID
 
 
 trait EvaluationCommsService extends CnxnString[String, String, String]{
-  self : EvalConfig =>
+  self : EvalConfig with DSLCommLinkConfiguration =>
 
   import DSLCommLink._   
   import Being._
@@ -58,43 +59,14 @@ trait EvaluationCommsService extends CnxnString[String, String, String]{
   ) = {
     _clientServerPair match {
       case Some( lnk ) => lnk
-      case None => {
-        val dslCommLinkHost =
-          try {
-            evalConfig.getString( "DSLCommLinkHost" )
-          }
-          catch {
-            case e : Throwable => "10.0.1.10"
-          }
-        val dslCommLinkPort = 
-          try {
-            evalConfig.getInt( "DSLCommLinkPort" )
-          }
-          catch {
-            case e : Throwable => 5672
-          }
-        val dslCommLinkRemoteHost = 
-          try {
-            evalConfig.getString( "DSLCommLinkRemoteHost" )
-          }
-          catch {
-            case e : Throwable => "10.0.1.8"
-          }
-        val dslCommLinkRemotePort = 
-          try {
-            evalConfig.getInt( "DSLCommLinkRemotePort" )
-          }
-          catch {
-            case e : Throwable => 5672
-          }
-
+      case None => {        
         val ( client, server ) : ( Being.PersistedMonadicKVDBNode[
           PersistedKVDBNodeRequest,PersistedKVDBNodeResponse
         ], Being.PersistedMonadicKVDBNode[
           PersistedKVDBNodeRequest,PersistedKVDBNodeResponse
         ] ) = DSLCommLinkCtor.stdBiLink(
-          dslCommLinkHost, dslCommLinkPort,
-          dslCommLinkRemoteHost, dslCommLinkRemotePort
+          clientHostName, clientPort,
+          serverHostName, serverPort
         )
 
         _clientServerPair = Some( ( client, server ) )
@@ -108,41 +80,12 @@ trait EvaluationCommsService extends CnxnString[String, String, String]{
   ) : Being.PersistedMonadicKVDBNode[PersistedKVDBNodeRequest,PersistedKVDBNodeResponse] = {
     _node match {
       case Some( n ) => n
-      case None => {
-        val dslCommLinkHost =
-          try {
-            evalConfig.getString( "DSLCommLinkHost" )
-          }
-          catch {
-            case e : Throwable => "localhost"
-          }
-        val dslCommLinkPort = 
-          try {
-            evalConfig.getInt( "DSLCommLinkPort" )
-          }
-          catch {
-            case e : Throwable => 5672
-          }
-        val dslCommLinkRemoteHost = 
-          try {
-            evalConfig.getString( "DSLCommLinkRemoteHost" )
-          }
-          catch {
-            case e : Throwable => "localhost"
-          }
-        val dslCommLinkRemotePort = 
-          try {
-            evalConfig.getInt( "DSLCommLinkRemotePort" )
-          }
-          catch {
-            case e : Throwable => 5672
-          }
-
+      case None => {        
         val n : Being.PersistedMonadicKVDBNode[
           PersistedKVDBNodeRequest,PersistedKVDBNodeResponse
         ] = DSLCommLinkCtor.stdLink(
-          dslCommLinkHost, dslCommLinkPort,
-          dslCommLinkRemoteHost, dslCommLinkRemotePort
+          serverHostName, serverPort,
+          clientHostName, clientPort
         )( flip )
 
         _node = Some( n )
@@ -156,6 +99,175 @@ trait EvaluationCommsService extends CnxnString[String, String, String]{
     def erspl( sessionID : UUID ) : CnxnCtxtLabel[String,String,String]
     def adminErql( sessionID : UUID ) : CnxnCtxtLabel[String,String,String]
     def adminErspl( sessionID : UUID ) : CnxnCtxtLabel[String,String,String]
+    val userDataFilter = fromTermString(
+        "userData(listOfAliases(A), defaultAlias(DA), listOfLabels(L), listOfCnxns(C), lastActiveFilter(F))"
+      ).getOrElse(throw new Exception(""))
+    val pwmacFilter = fromTermString("\"pwmac\"").getOrElse(throw new Exception(""))
+    val emailFilter = fromTermString("\"email\"").getOrElse(throw new Exception(""))
+
+    // Under what conditions can this fail?
+    def secureSignup(
+      erql : CnxnCtxtLabel[String,String,String],
+      erspl : CnxnCtxtLabel[String,String,String]
+    )(
+      email: String,
+      password: String,
+      complete: Either[String, String] => Unit
+    ) : Unit = {
+      import DSLCommLink.mTT
+      val lcemail = email.toLowerCase
+      val cap = if (lcemail == "") UUID.randomUUID.toString else {
+        // If email is nonempty, hash it for the cap part
+        val md = MessageDigest.getInstance("SHA-256")
+        md.update(lcemail.getBytes("utf-8"))
+        val cap = md.digest().map("%02x" format _).mkString.substring(0,36)
+        val emailURI = new URI("mailto://" + lcemail)
+        val emailSelfCnxn = new ConcreteHL.PortableAgentCnxn(emailURI, emailURI.toString, emailURI)
+        // TODO(mike): validate structure of email address
+        // TODO(mike): delay this until after we've received confirmation that
+        //   the owner of this email address wants to sign up.
+        //   Signing up twice is safe, since the cap is a pure function of the email.
+        post[String](erql, erspl)(
+          emailFilter,
+          List(emailSelfCnxn),
+          cap
+        )
+        cap
+      }
+      println("secureSignup lcemail="+lcemail+", password="+password+", cap="+cap)
+      val macInstance = Mac.getInstance("HmacSHA256")
+      macInstance.init(new SecretKeySpec("5ePeN42X".getBytes("utf-8"), "HmacSHA256"))
+      val mac = macInstance.doFinal(cap.getBytes("utf-8")).slice(0,5).map("%02x" format _).mkString
+      val capAndMac = cap + mac
+      val capURI = new URI("usercap://" + cap)
+      val capSelfCnxn = new ConcreteHL.PortableAgentCnxn(capURI, "pwdb", capURI)
+
+      macInstance.init(new SecretKeySpec("pAss#4$#".getBytes("utf-8"), "HmacSHA256"))
+      val pwmac = macInstance.doFinal(password.getBytes("utf-8")).map("%02x" format _).mkString
+
+      val onPost: Option[mTT.Resource] => Unit = ( dummy : Option[mTT.Resource] ) => {
+        println("secureSignup onPost1")
+        post[String](erql, erspl)(
+          userDataFilter,
+          List(capSelfCnxn),
+          "userData(listOfAliases(), defaultAlias(\"\"), listOfLabels(), " +
+              "listOfCnxns(), lastActiveFilter(\"\"))",
+          ( dummy : Option[mTT.Resource] ) => {
+            println("secureSignup onPost2")
+            // TODO(mike): send email with capAndMac
+            complete(Left(capAndMac))
+          }
+        )
+      }
+      println("secureSignup posting pwmac")
+      post[String](erql, erspl)(
+        pwmacFilter,
+        List(capSelfCnxn),
+        pwmac,
+        onPost
+      )
+    }
+    
+    def secureLogin( 
+      erql : CnxnCtxtLabel[String,String,String],
+      erspl : CnxnCtxtLabel[String,String,String]
+    )(
+      identType: String,
+      identInfo: String,
+      password: String,
+      complete: String => Unit
+    ) : Unit = {
+      import DSLCommLink.mTT
+      
+      def login(cap: String): Unit = {
+        val capURI = new URI("usercap://" + cap)
+        val capSelfCnxn = new ConcreteHL.PortableAgentCnxn(capURI, "pwdb", capURI)
+        val onFeed: Option[mTT.Resource] => Unit = _ match {
+          // At this point the cap is good, but we have to verify the pw mac
+          case Some(mTT.Ground(pwmac: ConcreteHL.HLExpr)) => {
+            val macInstance = Mac.getInstance("HmacSHA256")
+            macInstance.init(new SecretKeySpec("pAss#4$#".getBytes("utf-8"), "HmacSHA256"))
+            val hex = macInstance.doFinal(password.getBytes("utf-8")).map("%02x" format _).mkString
+            if (hex != pwmac.toString) {
+              complete("Bad password.")
+            } else {
+              val onUserDataFeed: Option[mTT.Resource] => Unit = _ match {
+                case Some(rbnd: mTT.RBound) => {
+                  // TODO(mike): fill in response with bindings
+                  val bindings = rbnd.sbst.getOrElse(throw new Exception(""))
+                  complete(
+                    """{
+                      "msgType": "initializeSessionResponse",
+                      "content": {
+                        "sessionURI": "agent-session://ArtVandelay@session1",
+                        "listOfAliases": [],
+                        "defaultAlias": "",
+                        "listOfLabels": [],
+                        "listOfCnxns": [],
+                        "lastActiveFilter": ""
+                      }
+                    }
+                    """
+                  )
+                }
+              }
+              feed( erql, erspl )(userDataFilter, List(capSelfCnxn), onUserDataFeed)
+              complete(
+                """{
+                  "msgType": "initializeSessionResponse",
+                  "content": {
+                    "sessionURI": "agent-session://ArtVandelay@session1"
+                  }
+                }
+                """
+              )
+            }
+          }
+        }
+        val filter = fromTermString("\"pwmac\"").getOrElse(throw new Exception(""))
+        feed( erql, erspl )(filter, List(capSelfCnxn), onFeed)
+      }
+      
+      // identType is either "cap" or "email"
+      identType match {
+        case "cap" => {
+          val cap = identInfo.slice(0, 36)
+          val mac = identInfo.slice(36, 46)
+          val macInstance = Mac.getInstance("HmacSHA256")
+          macInstance.init(new SecretKeySpec("5ePeN42X".getBytes("utf-8"), "HmacSHA256"))
+          val hex = macInstance.doFinal(cap.getBytes("utf-8")).slice(0,5).map("%02x" format _).mkString
+          if (hex != mac) {
+            complete("This link wasn't generated by us.")
+          } else {
+            login(cap)
+          }
+        }
+        
+        case "email" => {
+          val email = identInfo.toLowerCase
+          // hash the email to get cap
+          val md = MessageDigest.getInstance("SHA256")
+          val cap = md.digest(email.getBytes("UTF-8")).
+              map("%02x" format _).mkString.slice(0,36)
+          // don't need mac; need to verify email is on our network
+          val emailURI = new URI("mailto://" + email)
+          val emailSelfCnxn = new ConcreteHL.PortableAgentCnxn(emailURI, emailURI.toString, emailURI)
+          feed(erql, erspl)(
+            emailFilter,
+            List(emailSelfCnxn),
+            (optRsrc: Option[mTT.Resource]) => {
+              optRsrc match {
+                case Some(mTT.Ground(cap: ConcreteHL.HLExpr)) => {
+                  login(cap.toString)
+                }
+              }
+            }
+          )
+        }
+      }
+      
+    }
+    
     def secureCnxn( 
         userName: String, 
         userPwd: String, 
@@ -336,22 +448,22 @@ trait EvaluationCommsService extends CnxnString[String, String, String]{
           new AgentManager with Serializable {
             override def erql( sessionID : UUID ) : CnxnCtxtLabel[String,String,String] = {
               ExchangeLabels.evalRequestLabel()(
-                sessionID.toString
+                Left[String,String]( sessionID.toString )
               ).getOrElse( throw new Exception( "unable to make evalRequestLabel" ) )
             }
             override def erspl( sessionID : UUID ) : CnxnCtxtLabel[String,String,String] = {
               ExchangeLabels.evalResponseLabel()(
-                sessionID.toString
+                Left[String,String]( sessionID.toString )
               ).getOrElse( throw new Exception( "unable to make evalResponseLabel" ) )
             }
 	    override def adminErql( sessionID : UUID ) : CnxnCtxtLabel[String,String,String] = {
               ExchangeLabels.adminRequestLabel()(
-                sessionID.toString
+                Left[String,String]( sessionID.toString )
               ).getOrElse( throw new Exception( "unable to make adminRequestLabel" ) )
             }
             override def adminErspl( sessionID : UUID ) : CnxnCtxtLabel[String,String,String] = {
               ExchangeLabels.adminResponseLabel()(
-                sessionID.toString
+                Left[String,String]( sessionID.toString )
               ).getOrElse( throw new Exception( "unable to make adminResponseLabel" ) )
             }
           }
@@ -361,5 +473,19 @@ trait EvaluationCommsService extends CnxnString[String, String, String]{
         agntMgr
       }
     }    
+  }
+}
+
+package usage {
+  object EvaluationServiceContext
+  extends Serializable 
+  with UseCaseHelper {    
+    @transient
+    lazy val eServe =
+      new EvaluationCommsService
+         with EvalConfig
+         with DSLCommLinkConfiguration
+         with Serializable {
+         }    
   }
 }
