@@ -1,7 +1,7 @@
 package com.protegra_ati.agentservices.protocols
 
 import com.biosimilarity.evaluator.distribution.ConcreteHL
-import com.biosimilarity.evaluator.distribution.diesel.DieselEngine
+import com.biosimilarity.evaluator.distribution.diesel.DieselEngineCtor
 import com.protegra_ati.agentservices.protocols.msgs._
 import java.net.URI
 import java.util.UUID
@@ -14,8 +14,8 @@ class IntroductionIntegrationTest extends SpecificationWithJUnit with Tags {
   class ConcreteBaseProtocols extends BaseProtocols
 
   class Setup extends Scope {
-    val engine = new DieselEngine(Some("eval.conf"))
-    val node = new KVDBNodeWrapper(engine.agent("/dieselProtocol"))
+    val engine = new DieselEngineCtor.DieselEngine(Some("eval.conf"))
+    val node = new KVDBNodeWrapper(DieselEngineCtor.agent("/dieselProtocol"))
     val baseProtocols = new ConcreteBaseProtocols
 
     val zuiCnxn = new ConcreteHL.PortableAgentCnxn(new URI("z"), "zui", new URI("ui"))

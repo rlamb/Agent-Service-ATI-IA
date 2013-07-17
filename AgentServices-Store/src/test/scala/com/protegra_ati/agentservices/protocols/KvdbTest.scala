@@ -1,7 +1,7 @@
 package com.protegra_ati.agentservices.protocols
 
 import com.biosimilarity.evaluator.distribution.ConcreteHL
-import com.biosimilarity.evaluator.distribution.diesel.DieselEngine
+import com.biosimilarity.evaluator.distribution.diesel.DieselEngineCtor
 import com.biosimilarity.evaluator.distribution.diesel.DieselEngineScope._
 import com.protegra_ati.agentservices.store.extensions.StringExtensions._
 import java.net.URI
@@ -12,8 +12,8 @@ import scala.util.continuations._
 
 class KvdbTest extends SpecificationWithJUnit {
   class Setup extends Scope {
-    val engine = new DieselEngine(Some("eval.conf"))
-    val node = engine.agent("/dieselProtocol")
+    val engine = new DieselEngineCtor.DieselEngine(Some("eval.conf"))
+    val node = DieselEngineCtor.agent("/dieselProtocol")
     val cnxn = new acT.AgentCnxn(new URI("a"), "ab", new URI("b"))
     val label = "test(\"test\")".toLabel
   }
