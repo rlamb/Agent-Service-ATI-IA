@@ -173,6 +173,12 @@ package diesel {
             MURI( here ),
             configFileName
           ) with Blobify with AMQPMonikerOps {          
+            override def toXQSafeJSONBlob( x : java.lang.Object ) : String = {
+              new XStream( new JettisonMappedXmlDriver() ).toXML( x )
+            }
+            override def fromXQSafeJSONBlob( blob : String ) : java.lang.Object = {              
+              new XStream( new JettisonMappedXmlDriver() ).fromXML( blob )
+            }      
             class StringMongoDBManifest(
               override val storeUnitStr : String,
               @transient override val labelToNS : Option[String => String],
@@ -485,6 +491,12 @@ package diesel {
                   MURI( here ),
                   configFileName
                 ) with Blobify with AMQPMonikerOps {            
+                  override def toXQSafeJSONBlob( x : java.lang.Object ) : String = {
+                    new XStream( new JettisonMappedXmlDriver() ).toXML( x )
+                  }
+                  override def fromXQSafeJSONBlob( blob : String ) : java.lang.Object = {              
+                    new XStream( new JettisonMappedXmlDriver() ).fromXML( blob )
+                  }      
                   class StringMongoDBManifest(
                     override val storeUnitStr : String,
                     @transient override val labelToNS : Option[String => String],
@@ -804,6 +816,12 @@ package diesel {
                   MURI( here ),
                   configFileName
                 ) with Blobify with AMQPMonikerOps {            
+                  override def toXQSafeJSONBlob( x : java.lang.Object ) : String = {
+                    new XStream( new JettisonMappedXmlDriver() ).toXML( x )
+                  }
+                  override def fromXQSafeJSONBlob( blob : String ) : java.lang.Object = {              
+                    new XStream( new JettisonMappedXmlDriver() ).fromXML( blob )
+                  }      
                   class StringMongoDBManifest(
                     override val storeUnitStr : String,
                     @transient override val labelToNS : Option[String => String],
@@ -1145,6 +1163,12 @@ package diesel {
                   MURI( here ),
                   configFileName
                 ) with Blobify with AMQPMonikerOps {            
+                  override def toXQSafeJSONBlob( x : java.lang.Object ) : String = {
+                    new XStream( new JettisonMappedXmlDriver() ).toXML( x )
+                  }
+                  override def fromXQSafeJSONBlob( blob : String ) : java.lang.Object = {              
+                    new XStream( new JettisonMappedXmlDriver() ).fromXML( blob )
+                  }      
                   class StringMongoDBManifest(
                     override val storeUnitStr : String,
                     @transient override val labelToNS : Option[String => String],
@@ -1607,6 +1631,24 @@ package diesel {
             for( e <- client.get( erql ) ) {
               e match {
                 case Some( boundRsrc@DSLCommLink.mTT.RBoundAList( Some( DSLCommLink.mTT.Ground( expr ) ), subst ) ) => {
+                  for( map <- boundRsrc.sbst; CnxnCtxtLeaf( Left( sessionId ) ) <- map.get( "SessionId" ) ) {
+                    val erspl : CnxnCtxtLabel[String,String,String] = rspLabelCtor( sessionId )
+                    
+                    val forward : Option[mTT.Resource] => Unit =
+                      {
+                        ( optRsrc : Option[mTT.Resource] ) => {
+                          for( mTT.Ground( v ) <- optRsrc ) {
+                            reset {
+                              server.put( erspl, DSLCommLink.mTT.Ground( v ) )
+                            }
+                          }
+                        }
+                      }
+                    
+                    evaluateExpression( node )( expr )( forward )
+                  }             
+                }
+                case Some( boundRsrc@DSLCommLink.mTT.RBoundHM( Some( DSLCommLink.mTT.Ground( expr ) ), subst ) ) => {
                   for( map <- boundRsrc.sbst; CnxnCtxtLeaf( Left( sessionId ) ) <- map.get( "SessionId" ) ) {
                     val erspl : CnxnCtxtLabel[String,String,String] = rspLabelCtor( sessionId )
                     
