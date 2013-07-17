@@ -1,12 +1,12 @@
 package com.protegra_ati.agentservices.protocols.msgs
 
-import com.biosimilarity.evaluator.distribution.ConcreteHL
+import com.biosimilarity.evaluator.distribution.PortableAgentCnxn
 
 case class Connect(
   connectId: String,
   aliasName: Option[String],
-  writeCnxn: Option[ConcreteHL.PortableAgentCnxn],
-  readCnxn: Option[ConcreteHL.PortableAgentCnxn])
+  writeCnxn: Option[PortableAgentCnxn],
+  readCnxn: Option[PortableAgentCnxn])
 
   extends ProtocolMessage {
 

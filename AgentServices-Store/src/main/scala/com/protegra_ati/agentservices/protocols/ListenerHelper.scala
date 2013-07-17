@@ -1,6 +1,7 @@
 package com.protegra_ati.agentservices.protocols
 
 import com.biosimilarity.evaluator.distribution.ConcreteHL
+import com.biosimilarity.evaluator.distribution.PortableAgentCnxn
 import com.biosimilarity.evaluator.distribution.diesel.DieselEngineScope._
 import com.protegra_ati.agentservices.protocols.msgs._
 import scala.concurrent._
@@ -11,7 +12,7 @@ import ExecutionContext.Implicits.global
 trait ListenerHelper {
   def listen[T <: ProtocolMessage: ClassTag](
     node: NodeWrapper,
-    cnxn: ConcreteHL.PortableAgentCnxn,
+    cnxn: PortableAgentCnxn,
     labelMessage: T): Future[T] = {
 
     future {
@@ -42,8 +43,8 @@ trait ListenerHelper {
 
   def listenJoin[T <: ProtocolMessage: ClassTag, U <: ProtocolMessage: ClassTag](
     node: NodeWrapper,
-    cnxnA: ConcreteHL.PortableAgentCnxn,
-    cnxnB: ConcreteHL.PortableAgentCnxn,
+    cnxnA: PortableAgentCnxn,
+    cnxnB: PortableAgentCnxn,
     labelMessageA: T,
     labelMessageB: U): Future[(T, U)] = {
 
@@ -78,7 +79,7 @@ trait ListenerHelper {
 
   def listenSubscribe[T <: ProtocolMessage: ClassTag](
     node: NodeWrapper,
-    cnxn: ConcreteHL.PortableAgentCnxn,
+    cnxn: PortableAgentCnxn,
     labelMessage: T,
     handler: Either[Throwable, T] => Unit): Unit = {
 

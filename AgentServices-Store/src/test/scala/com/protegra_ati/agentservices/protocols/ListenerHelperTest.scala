@@ -1,6 +1,6 @@
 package com.protegra_ati.agentservices.protocols
 
-import com.biosimilarity.evaluator.distribution.ConcreteHL
+import com.biosimilarity.evaluator.distribution.PortableAgentCnxn
 import com.biosimilarity.lift.model.store.CnxnCtxtLabel
 import com.protegra_ati.agentservices.protocols.msgs.ProtocolMessage
 import com.protegra_ati.agentservices.store.extensions.StringExtensions._
@@ -30,8 +30,8 @@ class ListenerHelperTest extends SpecificationWithJUnit with Tags {
   class Setup extends Scope {
     val node = new TestNodeWrapper(new AgentTestNode)
     val baseProtocols = new ConcreteBaseProtocols
-    val cnxn = new ConcreteHL.PortableAgentCnxn(new URI("a"), "ab", new URI("b"))
-    val cnxn2 = new ConcreteHL.PortableAgentCnxn(new URI("b"), "ba", new URI("a"))
+    val cnxn = new PortableAgentCnxn(new URI("a"), "ab", new URI("b"))
+    val cnxn2 = new PortableAgentCnxn(new URI("b"), "ba", new URI("a"))
   }
 
   section("unit", "ia")

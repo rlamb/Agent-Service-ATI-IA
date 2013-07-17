@@ -1,6 +1,6 @@
 package com.protegra_ati.agentservices.protocols
 
-import com.biosimilarity.evaluator.distribution.ConcreteHL
+import com.biosimilarity.evaluator.distribution.PortableAgentCnxn
 import com.protegra_ati.agentservices.protocols.msgs._
 import java.util.UUID
 import scala.concurrent._
@@ -9,7 +9,7 @@ import ExecutionContext.Implicits.global
 trait SenderHelper {
   def sendBeginIntroductionResponse(
     node: NodeWrapper,
-    cnxn: ConcreteHL.PortableAgentCnxn,
+    cnxn: PortableAgentCnxn,
     responseId: String,
     accepted: Boolean,
     aRejectReason: Option[String] = None,
@@ -24,8 +24,8 @@ trait SenderHelper {
 
   def sendGetIntroductionProfileRequest(
     node: NodeWrapper,
-    cnxn: ConcreteHL.PortableAgentCnxn,
-    responseCnxn: ConcreteHL.PortableAgentCnxn): String = {
+    cnxn: PortableAgentCnxn,
+    responseCnxn: PortableAgentCnxn): String = {
 
     val requestId = UUID.randomUUID().toString
     val request = new GetIntroductionProfileRequest(Some(requestId), Some(responseCnxn))
@@ -39,7 +39,7 @@ trait SenderHelper {
 
   def sendGetIntroductionProfileResponse(
     node: NodeWrapper,
-    cnxn: ConcreteHL.PortableAgentCnxn,
+    cnxn: PortableAgentCnxn,
     responseId: String): Unit = {
 
     val response = new GetIntroductionProfileResponse(responseId)
@@ -51,8 +51,8 @@ trait SenderHelper {
 
   def sendIntroductionRequest(
     node: NodeWrapper,
-    cnxn: ConcreteHL.PortableAgentCnxn,
-    responseCnxn: ConcreteHL.PortableAgentCnxn,
+    cnxn: PortableAgentCnxn,
+    responseCnxn: PortableAgentCnxn,
     message: Option[String]): String = {
 
     val requestId = UUID.randomUUID().toString
@@ -67,7 +67,7 @@ trait SenderHelper {
 
   def sendIntroductionResponse(
     node: NodeWrapper,
-    cnxn: ConcreteHL.PortableAgentCnxn,
+    cnxn: PortableAgentCnxn,
     responseId: String,
     accepted: Boolean,
     aliasName: Option[String],
@@ -85,11 +85,11 @@ trait SenderHelper {
 
   def sendConnect(
     node: NodeWrapper,
-    cnxn: ConcreteHL.PortableAgentCnxn,
+    cnxn: PortableAgentCnxn,
     connectId: String,
     aliasName: Option[String],
-    writeCnxn: ConcreteHL.PortableAgentCnxn,
-    readCnxn: ConcreteHL.PortableAgentCnxn): Unit = {
+    writeCnxn: PortableAgentCnxn,
+    readCnxn: PortableAgentCnxn): Unit = {
 
     val connect = new Connect(connectId, aliasName, Some(writeCnxn), Some(readCnxn))
 

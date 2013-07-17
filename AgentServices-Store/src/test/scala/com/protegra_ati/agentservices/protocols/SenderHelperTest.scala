@@ -1,6 +1,6 @@
 package com.protegra_ati.agentservices.protocols
 
-import com.biosimilarity.evaluator.distribution.ConcreteHL
+import com.biosimilarity.evaluator.distribution.PortableAgentCnxn
 import com.protegra_ati.agentservices.protocols.msgs._
 import com.protegra_ati.agentservices.store.{AgentTestNode, TestNodeWrapper}
 import java.net.URI
@@ -15,7 +15,7 @@ class SenderHelperTest extends SpecificationWithJUnit with Tags {
   class Setup extends Scope {
     val node = new TestNodeWrapper(new AgentTestNode)
     val baseProtocols = new ConcreteBaseProtocols
-    val cnxn = new ConcreteHL.PortableAgentCnxn(new URI("a"), "ab", new URI("b"))
+    val cnxn = new PortableAgentCnxn(new URI("a"), "ab", new URI("b"))
   }
 
   section("unit", "ia")
@@ -40,7 +40,7 @@ class SenderHelperTest extends SpecificationWithJUnit with Tags {
 
   "SenderHelper.sendGetIntroductionProfileRequest" should {
     "send a message" in new Setup() {
-      val responseCnxn = new ConcreteHL.PortableAgentCnxn(new URI("b"), "ba", new URI("a"))
+      val responseCnxn = new PortableAgentCnxn(new URI("b"), "ba", new URI("a"))
 
       val requestId = baseProtocols.sendGetIntroductionProfileRequest(node, cnxn, responseCnxn)
       val f = baseProtocols.listen[GetIntroductionProfileRequest](node, cnxn, new GetIntroductionProfileRequest())
@@ -65,7 +65,7 @@ class SenderHelperTest extends SpecificationWithJUnit with Tags {
 
   "SenderHelper.sendIntroductionRequest" should {
     "send a message" in new Setup() {
-      val responseCnxn = new ConcreteHL.PortableAgentCnxn(new URI("b"), "ba", new URI("a"))
+      val responseCnxn = new PortableAgentCnxn(new URI("b"), "ba", new URI("a"))
       val message = "message"
 
       val requestId = baseProtocols.sendIntroductionRequest(node, cnxn, responseCnxn, Some(message))
@@ -101,8 +101,8 @@ class SenderHelperTest extends SpecificationWithJUnit with Tags {
     "send a message" in new Setup() {
       val connectId = "connectId"
       val aliasName = "aliasName"
-      val writeCnxn = new ConcreteHL.PortableAgentCnxn(new URI("b"), "bc", new URI("c"))
-      val readCnxn = new ConcreteHL.PortableAgentCnxn(new URI("c"), "cb", new URI("b"))
+      val writeCnxn = new PortableAgentCnxn(new URI("b"), "bc", new URI("c"))
+      val readCnxn = new PortableAgentCnxn(new URI("c"), "cb", new URI("b"))
 
       baseProtocols.sendConnect(node, cnxn, connectId, Some(aliasName), writeCnxn, readCnxn)
       val f = baseProtocols.listen[Connect](node, cnxn, new Connect(connectId))

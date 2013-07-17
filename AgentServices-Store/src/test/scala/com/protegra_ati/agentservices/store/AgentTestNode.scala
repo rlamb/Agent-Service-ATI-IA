@@ -1,6 +1,6 @@
 package com.protegra_ati.agentservices.store
 
-import com.biosimilarity.evaluator.distribution.ConcreteHL
+import com.biosimilarity.evaluator.distribution.PortableAgentCnxn
 import com.biosimilarity.evaluator.distribution.diesel.DieselEngineScope._
 import com.biosimilarity.lift.lib.MonadicGenerators
 import com.biosimilarity.lift.model.store.CnxnCtxtLabel
@@ -10,7 +10,7 @@ import scala.util.continuations._
 class AgentTestNode extends MonadicGenerators {
   val map = mutable.Map[String, mTT.Resource]()
 
-  def get(cnxn: ConcreteHL.PortableAgentCnxn)(path: CnxnCtxtLabel[String, String, String]): Generator[Option[mTT.Resource],Unit,Unit] = {
+  def get(cnxn: PortableAgentCnxn)(path: CnxnCtxtLabel[String, String, String]): Generator[Option[mTT.Resource],Unit,Unit] = {
     Generator {
       rk: (Option[mTT.Resource] => Unit @suspendable) =>
         val key = getKey(cnxn, path)
@@ -28,7 +28,7 @@ class AgentTestNode extends MonadicGenerators {
     }
   }
 
-  def subscribe(cnxn: ConcreteHL.PortableAgentCnxn)(path: CnxnCtxtLabel[String, String, String]): Generator[Option[mTT.Resource],Unit,Unit] = {
+  def subscribe(cnxn: PortableAgentCnxn)(path: CnxnCtxtLabel[String, String, String]): Generator[Option[mTT.Resource],Unit,Unit] = {
     Generator {
       rk: (Option[mTT.Resource] => Unit @suspendable) =>
         val key = getKey(cnxn, path)
@@ -47,17 +47,17 @@ class AgentTestNode extends MonadicGenerators {
     }
   }
 
-  def put(cnxn: ConcreteHL.PortableAgentCnxn)(ptn: mTT.GetRequest, rsrc: mTT.Resource): Unit = {
+  def put(cnxn: PortableAgentCnxn)(ptn: mTT.GetRequest, rsrc: mTT.Resource): Unit = {
     val key = getKey(cnxn, ptn)
     map.put(key, rsrc)
   }
 
-  def publish(cnxn: ConcreteHL.PortableAgentCnxn)(ptn: mTT.GetRequest, rsrc: mTT.Resource): Unit = {
+  def publish(cnxn: PortableAgentCnxn)(ptn: mTT.GetRequest, rsrc: mTT.Resource): Unit = {
     val key = getKey(cnxn, ptn)
     map.put(key, rsrc)
   }
 
-  private def getKey(cnxn: ConcreteHL.PortableAgentCnxn, label: CnxnCtxtLabel[String, String, String]): String = {
+  private def getKey(cnxn: PortableAgentCnxn, label: CnxnCtxtLabel[String, String, String]): String = {
     cnxn.src.toString + cnxn.trgt.toString + cnxn.label + label.toString
   }
 }

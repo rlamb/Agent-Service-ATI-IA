@@ -1,6 +1,6 @@
 package com.protegra_ati.agentservices.protocols
 
-import com.biosimilarity.evaluator.distribution.ConcreteHL
+import com.biosimilarity.evaluator.distribution.PortableAgentCnxn
 import com.biosimilarity.evaluator.distribution.diesel.DieselEngineCtor
 import com.protegra_ati.agentservices.protocols.msgs._
 import java.net.URI
@@ -18,16 +18,16 @@ class IntroductionIntegrationTest extends SpecificationWithJUnit with Tags {
     val node = new KVDBNodeWrapper(DieselEngineCtor.agent("/dieselProtocol"))
     val baseProtocols = new ConcreteBaseProtocols
 
-    val zuiCnxn = new ConcreteHL.PortableAgentCnxn(new URI("z"), "zui", new URI("ui"))
-    val uizCnxn = new ConcreteHL.PortableAgentCnxn(new URI("ui"), "uiz", new URI("z"))
-    val zaCnxn = new ConcreteHL.PortableAgentCnxn(new URI("z"), "za", new URI("a"))
-    val azCnxn = new ConcreteHL.PortableAgentCnxn(new URI("a"), "az", new URI("z"))
-    val zbCnxn = new ConcreteHL.PortableAgentCnxn(new URI("z"), "zb", new URI("b"))
-    val bzCnxn = new ConcreteHL.PortableAgentCnxn(new URI("b"), "bz", new URI("z"))
-    val auiCnxn = new ConcreteHL.PortableAgentCnxn(new URI("a"), "aui", new URI("ui"))
-    val uiaCnxn = new ConcreteHL.PortableAgentCnxn(new URI("ui"), "uia", new URI("a"))
-    val buiCnxn = new ConcreteHL.PortableAgentCnxn(new URI("b"), "bui", new URI("ui"))
-    val uibCnxn = new ConcreteHL.PortableAgentCnxn(new URI("ui"), "uib", new URI("b"))
+    val zuiCnxn = new PortableAgentCnxn(new URI("z"), "zui", new URI("ui"))
+    val uizCnxn = new PortableAgentCnxn(new URI("ui"), "uiz", new URI("z"))
+    val zaCnxn = new PortableAgentCnxn(new URI("z"), "za", new URI("a"))
+    val azCnxn = new PortableAgentCnxn(new URI("a"), "az", new URI("z"))
+    val zbCnxn = new PortableAgentCnxn(new URI("z"), "zb", new URI("b"))
+    val bzCnxn = new PortableAgentCnxn(new URI("b"), "bz", new URI("z"))
+    val auiCnxn = new PortableAgentCnxn(new URI("a"), "aui", new URI("ui"))
+    val uiaCnxn = new PortableAgentCnxn(new URI("ui"), "uia", new URI("a"))
+    val buiCnxn = new PortableAgentCnxn(new URI("b"), "bui", new URI("ui"))
+    val uibCnxn = new PortableAgentCnxn(new URI("ui"), "uib", new URI("b"))
 
     val messageToA = "Message to A"
     val messageToB = "Message to B"

@@ -1,10 +1,10 @@
 package com.protegra_ati.agentservices.protocols.msgs
 
-import com.biosimilarity.evaluator.distribution.ConcreteHL
+import com.biosimilarity.evaluator.distribution.PortableAgentCnxn
 
 case class GetIntroductionProfileRequest(
   override val requestId: Option[String],
-  override val responseCnxn: Option[ConcreteHL.PortableAgentCnxn])
+  override val responseCnxn: Option[PortableAgentCnxn])
 
   extends ProtocolRequestMessage {
 

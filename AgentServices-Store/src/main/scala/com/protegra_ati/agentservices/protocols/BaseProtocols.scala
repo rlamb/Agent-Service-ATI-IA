@@ -1,6 +1,6 @@
 package com.protegra_ati.agentservices.protocols
 
-import com.biosimilarity.evaluator.distribution.ConcreteHL
+import com.biosimilarity.evaluator.distribution.PortableAgentCnxn
 import com.biosimilarity.evaluator.distribution.diesel.DieselEngineScope._
 import com.protegra_ati.agentservices.protocols.msgs._
 import java.net.URI
@@ -11,11 +11,11 @@ import ExecutionContext.Implicits.global
 
 trait BaseProtocols extends ListenerHelper with SenderHelper {
 
-  def genericIntroducer(kvdbNode: Being.AgentKVDBNode[PersistedKVDBNodeRequest, PersistedKVDBNodeResponse], cnxn: ConcreteHL.PortableAgentCnxn): Unit = {
+  def genericIntroducer(kvdbNode: Being.AgentKVDBNode[PersistedKVDBNodeRequest, PersistedKVDBNodeResponse], cnxn: PortableAgentCnxn): Unit = {
     genericIntroducer(new KVDBNodeWrapper(kvdbNode), cnxn)
   }
 
-  def genericIntroducer(node: NodeWrapper, cnxn: ConcreteHL.PortableAgentCnxn): Unit = {
+  def genericIntroducer(node: NodeWrapper, cnxn: PortableAgentCnxn): Unit = {
     // listen for BeginIntroductionRequest message
     listenSubscribe(
       node,
@@ -26,18 +26,18 @@ trait BaseProtocols extends ListenerHelper with SenderHelper {
 
   def genericIntroduced(
     kvdbNode: Being.AgentKVDBNode[PersistedKVDBNodeRequest, PersistedKVDBNodeResponse],
-    cnxn: ConcreteHL.PortableAgentCnxn,
-    privateRqCnxn: ConcreteHL.PortableAgentCnxn,
-    privateRspCnxn: ConcreteHL.PortableAgentCnxn) {
+    cnxn: PortableAgentCnxn,
+    privateRqCnxn: PortableAgentCnxn,
+    privateRspCnxn: PortableAgentCnxn) {
 
     genericIntroduced(new KVDBNodeWrapper(kvdbNode), cnxn, privateRqCnxn, privateRspCnxn)
   }
 
   def genericIntroduced(
     node: NodeWrapper,
-    cnxn: ConcreteHL.PortableAgentCnxn,
-    privateRqCnxn: ConcreteHL.PortableAgentCnxn,
-    privateRspCnxn: ConcreteHL.PortableAgentCnxn) {
+    cnxn: PortableAgentCnxn,
+    privateRqCnxn: PortableAgentCnxn,
+    privateRspCnxn: PortableAgentCnxn) {
 
     // listen for GetIntroductionProfileRequest message
     listenSubscribe(
@@ -89,8 +89,8 @@ trait BaseProtocols extends ListenerHelper with SenderHelper {
                 if (accepted) {
                   // create new cnxns
                   // TODO: Create new cnxns properly
-                  val abCnxn = new ConcreteHL.PortableAgentCnxn(new URI("agent://a"), "", new URI("agent://b"))
-                  val baCnxn = new ConcreteHL.PortableAgentCnxn(new URI("agent://b"), "", new URI("agent://a"))
+                  val abCnxn = new PortableAgentCnxn(new URI("agent://a"), "", new URI("agent://b"))
+                  val baCnxn = new PortableAgentCnxn(new URI("agent://b"), "", new URI("agent://a"))
 
                   // send Connect messages
                   sendConnect(node, biRq.aRequestCnxn.get, aiRsp.connectId.get, aiRsp.aliasName, abCnxn, baCnxn)
@@ -134,9 +134,9 @@ trait BaseProtocols extends ListenerHelper with SenderHelper {
 
   def handleIntroductionRequest(
     node: NodeWrapper,
-    cnxn: ConcreteHL.PortableAgentCnxn,
-    privateRqCnxn: ConcreteHL.PortableAgentCnxn,
-    privateRspCnxn: ConcreteHL.PortableAgentCnxn,
+    cnxn: PortableAgentCnxn,
+    privateRqCnxn: PortableAgentCnxn,
+    privateRspCnxn: PortableAgentCnxn,
     result: Either[Throwable, IntroductionRequest]): Unit = {
 
     result match {

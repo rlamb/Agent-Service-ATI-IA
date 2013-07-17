@@ -1,14 +1,14 @@
 package com.protegra_ati.agentservices.protocols.msgs
 
-import com.biosimilarity.evaluator.distribution.ConcreteHL
+import com.biosimilarity.evaluator.distribution.PortableAgentCnxn
 
 case class BeginIntroductionRequest(
   override val requestId: Option[String],
-  override val responseCnxn: Option[ConcreteHL.PortableAgentCnxn],
-  aRequestCnxn: Option[ConcreteHL.PortableAgentCnxn],
-  aResponseCnxn: Option[ConcreteHL.PortableAgentCnxn],
-  bRequestCnxn: Option[ConcreteHL.PortableAgentCnxn],
-  bResponseCnxn: Option[ConcreteHL.PortableAgentCnxn],
+  override val responseCnxn: Option[PortableAgentCnxn],
+  aRequestCnxn: Option[PortableAgentCnxn],
+  aResponseCnxn: Option[PortableAgentCnxn],
+  bRequestCnxn: Option[PortableAgentCnxn],
+  bResponseCnxn: Option[PortableAgentCnxn],
   aMessage: Option[String],
   bMessage: Option[String])
 
