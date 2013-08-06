@@ -1890,24 +1890,40 @@ package diesel {
       map
     }
 
-    // @transient
-//     var _engine : Option[DieselEngine] = None
-//     def engine( s : Option[String] = Some( "eval.conf" ) ) : DieselEngine = {
-//       _engine match {
-// 	case Some( e ) => e
-// 	case None => {
-// 	  val e = new DieselEngine( s )
-// 	  _engine = Some( e )
-// 	  e
-// 	}
-//       }
-//     }
+    @transient
+    var _engine : Option[DieselEngineCtor.DieselEngine] = None
+    def engine( s : Option[String] = Some( "eval.conf" ) ) : DieselEngineCtor.DieselEngine = {
+      _engine match {
+	case Some( e ) => e
+	case None => {
+	  val e = new DieselEngineCtor.DieselEngine( s )
+	  _engine = Some( e )
+	  e
+	}
+      }
+    }
+
+    @transient
+    var _looper : Option[DieselEngineCtor.DieselEngine#MsgProcessorBlock] = None
+    def looper(
+      e : DieselEngineCtor.DieselEngine = engine( None )
+    ) : DieselEngineCtor.DieselEngine#MsgProcessorBlock = {
+      _looper match {
+        case Some( mpb ) => mpb
+        case None => {
+          val mpb = e.stdLooper()
+          _looper = Some( mpb )
+          mpb
+        }
+      }
+    }
     
     def run( args : Array[String] ) : Unit = {
       @transient
       val map = processArgs( args )
       @transient
-      val e = new DieselEngineCtor.DieselEngine( map.get( "config" ) )
+      //val e = new DieselEngineCtor.DieselEngine( map.get( "config" ) )
+      val e = engine( map.get( "config" ) )
       val version = e.version
       println( "*******************************************************" )
       println( "******************** Diesel engine ********************" )
@@ -1916,7 +1932,8 @@ package diesel {
       
       //e.evalLoop()
       //e.adminLoop()
-      e.stdLooper().go()
+      //e.stdLooper().go()      
+      looper( e ).go()
     }
 
     def run( ) : Unit = {
