@@ -1582,44 +1582,288 @@ package diesel {
         expr match {
           case ConcreteHL.Bottom => {
             //throw new Exception( "divergence" )
-	    println( "warning: divergent expression" )
+	    //println( "warning: divergent expression" )
+            tweet( "warning: divergent expression" )
 	    handler( None )
           }
           case ConcreteHL.FeedExpr( filter, cnxns ) => {
+            tweet( "method: evaluateExpression" )
+            tweet( "\nin ConcreteHL.FeedExpr case " )
+            tweet( "\nthis: " + this )
+            tweet( "\nnode: " + node )
+            tweet( "\nexpr: " + expr )
+            tweet( "\nhandler: " + handler )
+            tweet( "\n-----------------------------------------" )
+            tweet( "\nfilter: " + filter )
+            tweet( "\ncnxns: " + cnxns )
+            
             for( cnxn <- cnxns ) {
               val agntCnxn : acT.AgentCnxn =
                 new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
               reset {
+                
+                tweet( "method: evaluateExpression" )
+                tweet( "\n calling node.subscribe " )
+                tweet( "\nthis: " + this )
+                tweet( "\nnode: " + node )
+                tweet( "\nexpr: " + expr )
+                tweet( "\nhandler: " + handler )
+                tweet( "\n-----------------------------------------" )
+                tweet( "\nagntCnxn: " + agntCnxn )
+                tweet( "\nfilter: " + filter )
+
                 for( e <- node.subscribe( agntCnxn )( filter ) ) {
+
+                  tweet( "method: evaluateExpression" )
+                  tweet( "\n returned from node.subscribe " )
+                  tweet( "\nthis: " + this )
+                  tweet( "\nnode: " + node )
+                  tweet( "\nexpr: " + expr )
+                  tweet( "\nhandler: " + handler )
+                  tweet( "\n-----------------------------------------" )
+                  tweet( "\nagntCnxn: " + agntCnxn )
+                  tweet( "\nfilter: " + filter )
+                  tweet( "\ne: " + e )
+
                   handler( e )
                 }
               }
             }
           }
           case ConcreteHL.ScoreExpr( filter, cnxns, staff ) => {
+            
+            tweet( "method: evaluateExpression" )
+            tweet( "\nin ConcreteHL.ScoreExpr case " )
+            tweet( "\nthis: " + this )
+            tweet( "\nnode: " + node )
+            tweet( "\nexpr: " + expr )
+            tweet( "\nhandler: " + handler )
+            tweet( "\n-----------------------------------------" )
+            tweet( "\nfilter: " + filter )
+            tweet( "\ncnxns: " + cnxns )
+            tweet( "\ncnxns: " + staff )
+
             for( cnxn <- cnxns ) {
               val agntCnxn : acT.AgentCnxn =
                 new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
               reset {
+                tweet( "method: evaluateExpression" )
+                tweet( "\n calling node.subscribe " )
+                tweet( "\nthis: " + this )
+                tweet( "\nnode: " + node )
+                tweet( "\nexpr: " + expr )
+                tweet( "\nhandler: " + handler )
+                tweet( "\n-----------------------------------------" )
+                tweet( "\nagntCnxn: " + agntCnxn )
+                tweet( "\nfilter: " + filter )
+
                 for( e <- node.subscribe( agntCnxn )( filter ) ) {
+                  
+                  tweet( "method: evaluateExpression" )
+                  tweet( "\n returned from node.subscribe " )
+                  tweet( "\nthis: " + this )
+                  tweet( "\nnode: " + node )
+                  tweet( "\nexpr: " + expr )
+                  tweet( "\nhandler: " + handler )
+                  tweet( "\n-----------------------------------------" )
+                  tweet( "\nagntCnxn: " + agntCnxn )
+                  tweet( "\nfilter: " + filter )
+                  tweet( "\ne: " + e )
+
                   handler( e )
                 }
               }
             }
           }
           case ConcreteHL.InsertContent( filter, cnxns, value : String ) => {
+            
+            tweet( "method: evaluateExpression" )
+            tweet( "\nin ConcreteHL.FeedExpr case " )
+            tweet( "\nthis: " + this )
+            tweet( "\nnode: " + node )
+            tweet( "\nexpr: " + expr )
+            tweet( "\nhandler: " + handler )
+            tweet( "\n-----------------------------------------" )
+            tweet( "\nfilter: " + filter )
+            tweet( "\ncnxns: " + cnxns )
+            tweet( "\nvalue: " + value )
+
             for( cnxn <- cnxns ) {
               val agntCnxn : acT.AgentCnxn =
                 new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
               reset {
+                
+                tweet( "method: evaluateExpression" )
+                tweet( "\n calling node.publish " )
+                tweet( "\nthis: " + this )
+                tweet( "\nnode: " + node )
+                tweet( "\nexpr: " + expr )
+                tweet( "\nhandler: " + handler )
+                tweet( "\n-----------------------------------------" )
+                tweet( "\nagntCnxn: " + agntCnxn )
+                tweet( "\nfilter: " + filter )
+                tweet( "\nvalue: " + value )
+
                 node.publish( agntCnxn )( filter, mTT.Ground( ConcreteHL.PostedExpr( value ) ) )
               }
+
+              handler( None )
             }
           }
         }
       }
 
+      def evaluateExpression[ReqBody <: PersistedKVDBNodeRequest, RspBody <: PersistedKVDBNodeResponse](
+        node : String
+      )( expr : ConcreteHL.HLExpr )(
+        handler : Option[mTT.Resource] => Unit
+      ): Unit = {
+        for ( n <- EvalNodeMapper.get( node ) ) {
+          expr match {
+            case ConcreteHL.Bottom => {
+              //throw new Exception( "divergence" )
+	      //println( "warning: divergent expression" )
+              tweet( "warning: divergent expression" )
+	      handler( None )
+            }
+            case ConcreteHL.FeedExpr( filter, cnxns ) => {
+              tweet( "method: evaluateExpression" )
+              tweet( "\nin ConcreteHL.FeedExpr case " )
+              tweet( "\nthis: " + this )
+              tweet( "\nnode: " + node )
+              tweet( "\nexpr: " + expr )
+              tweet( "\nhandler: " + handler )
+              tweet( "\n-----------------------------------------" )
+              tweet( "\nfilter: " + filter )
+              tweet( "\ncnxns: " + cnxns )
+              
+              for( cnxn <- cnxns ) {
+                val agntCnxn : acT.AgentCnxn =
+                  new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
+                reset {
+                  
+                  tweet( "method: evaluateExpression" )
+                  tweet( "\n calling node.subscribe " )
+                  tweet( "\nthis: " + this )
+                  tweet( "\nnode: " + node )
+                  tweet( "\nexpr: " + expr )
+                  tweet( "\nhandler: " + handler )
+                  tweet( "\n-----------------------------------------" )
+                  tweet( "\nagntCnxn: " + agntCnxn )
+                  tweet( "\nfilter: " + filter )
+                  
+                  for( e <- n.subscribe( agntCnxn )( filter ) ) {
+                    
+                    tweet( "method: evaluateExpression" )
+                    tweet( "\n returned from node.subscribe " )
+                    tweet( "\nthis: " + this )
+                    tweet( "\nnode: " + node )
+                    tweet( "\nexpr: " + expr )
+                    tweet( "\nhandler: " + handler )
+                    tweet( "\n-----------------------------------------" )
+                    tweet( "\nagntCnxn: " + agntCnxn )
+                    tweet( "\nfilter: " + filter )
+                    tweet( "\ne: " + e )
+                    
+                    handler( e )
+                  }
+                }
+              }
+            }
+            case ConcreteHL.ScoreExpr( filter, cnxns, staff ) => {
+              
+              tweet( "method: evaluateExpression" )
+              tweet( "\nin ConcreteHL.ScoreExpr case " )
+              tweet( "\nthis: " + this )
+              tweet( "\nnode: " + node )
+              tweet( "\nexpr: " + expr )
+              tweet( "\nhandler: " + handler )
+              tweet( "\n-----------------------------------------" )
+              tweet( "\nfilter: " + filter )
+              tweet( "\ncnxns: " + cnxns )
+              tweet( "\ncnxns: " + staff )
+              
+              for( cnxn <- cnxns ) {
+                val agntCnxn : acT.AgentCnxn =
+                  new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
+                reset {
+                  tweet( "method: evaluateExpression" )
+                  tweet( "\n calling node.subscribe " )
+                  tweet( "\nthis: " + this )
+                  tweet( "\nnode: " + node )
+                  tweet( "\nexpr: " + expr )
+                  tweet( "\nhandler: " + handler )
+                  tweet( "\n-----------------------------------------" )
+                  tweet( "\nagntCnxn: " + agntCnxn )
+                  tweet( "\nfilter: " + filter )
+                  
+                  for( e <- n.subscribe( agntCnxn )( filter ) ) {
+                    
+                    tweet( "method: evaluateExpression" )
+                    tweet( "\n returned from node.subscribe " )
+                    tweet( "\nthis: " + this )
+                    tweet( "\nnode: " + node )
+                    tweet( "\nexpr: " + expr )
+                    tweet( "\nhandler: " + handler )
+                    tweet( "\n-----------------------------------------" )
+                    tweet( "\nagntCnxn: " + agntCnxn )
+                    tweet( "\nfilter: " + filter )
+                    tweet( "\ne: " + e )
+                    
+                    handler( e )
+                  }
+                }
+              }
+            }
+            case ConcreteHL.InsertContent( filter, cnxns, value : String ) => {
+              
+              tweet( "method: evaluateExpression" )
+              tweet( "\nin ConcreteHL.FeedExpr case " )
+              tweet( "\nthis: " + this )
+              tweet( "\nnode: " + node )
+              tweet( "\nexpr: " + expr )
+              tweet( "\nhandler: " + handler )
+              tweet( "\n-----------------------------------------" )
+              tweet( "\nfilter: " + filter )
+              tweet( "\ncnxns: " + cnxns )
+              tweet( "\nvalue: " + value )
+              
+              for( cnxn <- cnxns ) {
+                val agntCnxn : acT.AgentCnxn =
+                  new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
+                reset {
+                  
+                  tweet( "method: evaluateExpression" )
+                  tweet( "\n calling node.publish " )
+                  tweet( "\nthis: " + this )
+                  tweet( "\nnode: " + node )
+                  tweet( "\nexpr: " + expr )
+                  tweet( "\nhandler: " + handler )
+                  tweet( "\n-----------------------------------------" )
+                  tweet( "\nagntCnxn: " + agntCnxn )
+                  tweet( "\nfilter: " + filter )
+                  tweet( "\nvalue: " + value )
+                  
+                  n.publish( agntCnxn )( filter, mTT.Ground( ConcreteHL.PostedExpr( value ) ) )
+                }
+                
+                handler( None )
+              }
+            }
+          }
+        }
+      }
+      
+      trait MessageProcessorElements {
+        def erql() : CnxnCtxtLabel[String,String,String]
+        def rspLabelCtor() : String => CnxnCtxtLabel[String,String,String]
+        def useBiLink() : Option[Boolean]
+        def flip() : Boolean
+      }
+
       trait MessageProcessor {
+        self : MessageProcessorElements =>
+
         def innerLoop(
           erql : CnxnCtxtLabel[String,String,String],
           client : LinkEvalRequestChannel,
@@ -1728,6 +1972,116 @@ package diesel {
           //}          
           //loop()
         }
+
+        def innerLoop(
+          erql : CnxnCtxtLabel[String,String,String],
+          client : LinkEvalRequestChannel,
+          server : LinkEvalRequestChannel,
+          node : String,
+          rspLabelCtor : String => CnxnCtxtLabel[String,String,String]
+        ) : Unit = {
+          // BUGBUG -- lgm : to accelerate progress at this level
+          // while waiting on a fix at the KVDB level the code has
+          // flipped around session id generation. The server now
+          // generates the session id. This means that the name of
+          // variable where the session id is bound is part of the
+          // contract between the client and the server. For this
+          // code to be more correct it should issue a check that
+          // the session id returned matches the session id
+          // assigned. This has to always be so because of the
+          // underlying mechanism. If it isn't there's a bug in
+          // the underlying comms structure.
+          //def loop() : Unit = {
+            reset { 
+              for( e <- client.subscribe( erql ) ) {
+                e match {
+                  case Some( boundRsrc@DSLCommLink.mTT.RBoundAList( Some( DSLCommLink.mTT.Ground( expr ) ), subst ) ) => {
+                    tweet( "rsrc type: DSLCommLink.mTT.RBoundAList" )
+                    for( map <- boundRsrc.sbst; CnxnCtxtLeaf( Left( sessionId ) ) <- map.get( "SessionId" ) ) {
+                      val erspl : CnxnCtxtLabel[String,String,String] = rspLabelCtor( sessionId )
+                      
+                      val forward : Option[mTT.Resource] => Unit =
+                        {
+                          ( optRsrc : Option[mTT.Resource] ) => {
+                            for( mTT.Ground( v ) <- optRsrc ) {                              
+                              reset {
+                                server.put( erspl, DSLCommLink.mTT.Ground( v ) )                                
+                              }
+                            }
+                          }
+                        }
+                      
+                      evaluateExpression( node )( expr )( forward )
+                    }             
+                  }
+                  case Some( boundRsrc@DSLCommLink.mTT.RBoundHM( Some( DSLCommLink.mTT.Ground( expr ) ), subst ) ) => {
+                    tweet( "rsrc type: DSLCommLink.mTT.RBoundHM" )
+                    for( map <- boundRsrc.sbst; CnxnCtxtLeaf( Left( sessionId ) ) <- map.get( "SessionId" ) ) {
+                      val erspl : CnxnCtxtLabel[String,String,String] = rspLabelCtor( sessionId )
+                      
+                      val forward : Option[mTT.Resource] => Unit =
+                        {
+                          ( optRsrc : Option[mTT.Resource] ) => {
+                            for( mTT.Ground( v ) <- optRsrc ) {                              
+                              reset {
+                                server.put( erspl, DSLCommLink.mTT.Ground( v ) )
+                              }
+                              //loop()
+                            }
+                          }
+                        }
+                      
+                      evaluateExpression( node )( expr )( forward )
+                    }             
+                  }
+                  case Some( rsrc ) => {
+                    rsrc match {
+                      case boundRsrc@DSLCommLink.mTT.RBoundHM( innerOptRsrc, subst ) => {
+                        tweet( "rsrc type: DSLCommLink.mTT.RBoundHM" )
+                        innerOptRsrc match {
+                          case Some( DSLCommLink.mTT.Ground( expr ) ) => {
+                            for( map <- boundRsrc.sbst; CnxnCtxtLeaf( Left( sessionId ) ) <- map.get( "SessionId" ) ) {
+                              val erspl : CnxnCtxtLabel[String,String,String] = rspLabelCtor( sessionId )
+                              
+                              val forward : Option[mTT.Resource] => Unit =
+                                {
+                                  ( optRsrc : Option[mTT.Resource] ) => {
+                                    for( mTT.Ground( v ) <- optRsrc ) {                                      
+                                      reset {
+                                        server.put( erspl, DSLCommLink.mTT.Ground( v ) )
+                                      }
+                                      //loop()
+                                    }
+                                  }
+                                }                        
+                              evaluateExpression( node )( expr )( forward )
+                            }
+                          }
+                          case Some( innerRrsc ) => {
+                            tweet( "unexpected inner rsrc type: " + innerRrsc )
+                            tweet( "inner rsrc type: " + innerRrsc.getClass )
+                          }
+                        }                      
+                      }
+                      case _ => {
+                        tweet( "unexpected rsrc type: " + rsrc )
+                        tweet( "rsrc type: " + rsrc.getClass )
+                      }
+                    }             
+                  }
+                  case None => {
+                    tweet( "server loop waiting." )
+                  }
+                  case _ => {
+                    tweet( "rsrc not handled: " + e )
+                  }
+                }
+              }
+            }
+          //}          
+          //loop()
+        }
+
         def messageProcessorLoop(
           erql : CnxnCtxtLabel[String,String,String],
           node : StdEvalChannel,
@@ -1751,53 +2105,171 @@ package diesel {
             }
           innerLoop( erql, client, server, node, rspLabelCtor )
         }
-      }
 
-      class MsgProcessor(
-        @transient
-        val erql : CnxnCtxtLabel[String,String,String],
-        @transient
-        val node : StdEvalChannel,
-        @transient
-        val rspLabelCtor : String => CnxnCtxtLabel[String,String,String],
-        val useBiLink : Option[Boolean] = None,
-        val flip : Boolean = false
-      ) extends MessageProcessor with Serializable {
-        def go() : Unit = {
-          messageProcessorLoop( erql, node, rspLabelCtor, useBiLink, flip )
-        }
-      }
-
-      object MsgProcessor extends Serializable {
-        def apply(
+        def lateMessageProcessorLoop(
           erql : CnxnCtxtLabel[String,String,String],
-          node : StdEvalChannel,
+          node : String,
           rspLabelCtor : String => CnxnCtxtLabel[String,String,String],
           useBiLink : Option[Boolean] = None,
           flip : Boolean = false
-        ) : MsgProcessor = {
-          new MsgProcessor( erql, node, rspLabelCtor, useBiLink, flip )
+        ) : Unit = {
+          val ( client, server ) = 
+            useBiLink match {
+              case Some( true ) => {
+                DSLCommLinkCtor.stdBiLink()              
+              }
+              case Some( false ) => {
+                val ( client, server ) = DSLCommLinkCtor.stdBiLink()
+                ( server, client )
+              }
+              case None => {          
+                val link = DSLCommLinkCtor.stdLink()( flip )
+                ( link, link )
+              }
+            }
+          innerLoop( erql, client, server, node, rspLabelCtor )
+        }
+
+        def go( derefNodeEarly : Boolean = false ) : Unit = {
+          throw new Exception( "attempting to run an abstract MessageProcessor" )
+        }
+      }      
+
+      class MsgProcessorVals(
+        @transient
+        override val erql : CnxnCtxtLabel[String,String,String],
+        @transient
+        override val rspLabelCtor : String => CnxnCtxtLabel[String,String,String],
+        override val useBiLink : Option[Boolean] = None,
+        override val flip : Boolean = false
+      ) extends MessageProcessorElements
+
+      object MsgProcessorVals extends Serializable {
+        def apply(
+          erql : CnxnCtxtLabel[String,String,String],
+          rspLabelCtor : String => CnxnCtxtLabel[String,String,String],
+          useBiLink : Option[Boolean] = None,
+          flip : Boolean = false
+        ) : MsgProcessorVals = {
+          new MsgProcessorVals( erql, rspLabelCtor, useBiLink, flip )
         }
         def unapply(
-          mp : MsgProcessor
+          mp : MsgProcessorVals
         ) : Option[
              (
-               CnxnCtxtLabel[String,String,String],
-               StdEvalChannel,
+               CnxnCtxtLabel[String,String,String],               
                String =>CnxnCtxtLabel[String,String,String],
                Option[Boolean],
                Boolean
              )
         ]
         = {
-          Some( ( mp.erql, mp.node, mp.rspLabelCtor, mp.useBiLink, mp.flip ) )
+          Some( ( mp.erql, mp.rspLabelCtor, mp.useBiLink, mp.flip ) )
+        }
+      }
+
+      class MsgProcessor(
+        @transient
+        val node : StdEvalChannel,        
+        @transient
+        override val erql : CnxnCtxtLabel[String,String,String],
+        @transient
+        override val rspLabelCtor : String => CnxnCtxtLabel[String,String,String],
+        override val useBiLink : Option[Boolean] = None,
+        override val flip : Boolean = false
+      ) extends MsgProcessorVals(
+        erql, rspLabelCtor, useBiLink, flip
+      ) with MessageProcessor with Serializable {
+        override def go( derefNodeEarly : Boolean = true ) : Unit = {
+          if ( derefNodeEarly ) {
+            messageProcessorLoop( erql, node, rspLabelCtor, useBiLink, flip )
+          }
+          else {
+            println( "warning: derefing node early anyway"  )
+            messageProcessorLoop( erql, node, rspLabelCtor, useBiLink, flip )
+          }
+        }
+      }
+
+      object MsgProcessor extends Serializable {
+        def apply(
+          node : StdEvalChannel,
+          erql : CnxnCtxtLabel[String,String,String],
+          rspLabelCtor : String => CnxnCtxtLabel[String,String,String],
+          useBiLink : Option[Boolean] = None,
+          flip : Boolean = false
+        ) : MsgProcessor = {
+          new MsgProcessor( node, erql, rspLabelCtor, useBiLink, flip )
+        }
+        def unapply(
+          mp : MsgProcessor
+        ) : Option[
+             (
+               StdEvalChannel,
+               CnxnCtxtLabel[String,String,String],               
+               String =>CnxnCtxtLabel[String,String,String],
+               Option[Boolean],
+               Boolean
+             )
+        ]
+        = {
+          Some( ( mp.node, mp.erql, mp.rspLabelCtor, mp.useBiLink, mp.flip ) )
+        }
+      }
+
+      class IndirectMsgProcessor(
+        val node : String,
+        @transient
+        override val erql : CnxnCtxtLabel[String,String,String],
+        @transient
+        override val rspLabelCtor : String => CnxnCtxtLabel[String,String,String],
+        override val useBiLink : Option[Boolean] = None,
+        override val flip : Boolean = false
+      ) extends MsgProcessorVals(
+        erql, rspLabelCtor, useBiLink, flip
+      ) with MessageProcessor with Serializable {
+        override def go( derefNodeEarly : Boolean = false ) : Unit = {
+          if ( derefNodeEarly ) {            
+            for( n <- EvalNodeMapper.get( node ) ) {
+              messageProcessorLoop( erql, n, rspLabelCtor, useBiLink, flip )
+            }
+          }
+          else {
+            lateMessageProcessorLoop( erql, node, rspLabelCtor, useBiLink, flip )
+          }
+        }
+      }
+
+      object IndirectMsgProcessor extends Serializable {
+        def apply(
+          node : String,
+          erql : CnxnCtxtLabel[String,String,String],
+          rspLabelCtor : String => CnxnCtxtLabel[String,String,String],
+          useBiLink : Option[Boolean] = None,
+          flip : Boolean = false
+        ) : IndirectMsgProcessor = {
+          new IndirectMsgProcessor( node, erql, rspLabelCtor, useBiLink, flip )
+        }
+        def unapply(
+          mp : IndirectMsgProcessor
+        ) : Option[
+             (
+               String,
+               CnxnCtxtLabel[String,String,String],
+               String =>CnxnCtxtLabel[String,String,String],
+               Option[Boolean],
+               Boolean
+             )
+        ]
+        = {
+          Some( ( mp.node, mp.erql, mp.rspLabelCtor, mp.useBiLink, mp.flip ) )
         }
       }
 
       case class MsgProcessorBlock(
         @transient
-        override val self : List[MsgProcessor]
-      ) extends scala.collection.SeqProxy[MsgProcessor] {
+        override val self : List[MessageProcessor]
+      ) extends scala.collection.SeqProxy[MessageProcessor] {
         def go() { for ( mp <- self ) { mp.go() } }
       }
 
@@ -1807,10 +2279,30 @@ package diesel {
         flip : Boolean = false
       ) : MsgProcessor = {
         MsgProcessor(
+          node,
           DSLCommLinkCtor.ExchangeLabels.adminRequestLabel()( Right[String,String]( "SessionId" ) ).getOrElse( 
             throw new Exception( "error making evalRequestLabel" )
           ),
+          ( sessionId : String ) => {
+            DSLCommLinkCtor.ExchangeLabels.adminResponseLabel()(
+              Left[String,String]( sessionId )
+            ).getOrElse( throw new Exception( "unable to make evaResponseLabel" ) )
+          },
+          useBiLink,
+          flip
+        )
+      }
+
+      def indirectAdminLooper(
+        node : String,
+        useBiLink : Option[Boolean] = None,
+        flip : Boolean = false
+      ) : IndirectMsgProcessor = {
+        IndirectMsgProcessor(
           node,
+          DSLCommLinkCtor.ExchangeLabels.adminRequestLabel()( Right[String,String]( "SessionId" ) ).getOrElse( 
+            throw new Exception( "error making evalRequestLabel" )
+          ),
           ( sessionId : String ) => {
             DSLCommLinkCtor.ExchangeLabels.adminResponseLabel()(
               Left[String,String]( sessionId )
@@ -1827,10 +2319,30 @@ package diesel {
         flip : Boolean = false
       ) : MsgProcessor = {
         MsgProcessor(
+          node,
           DSLCommLinkCtor.ExchangeLabels.evalRequestLabel()( Right[String,String]( "SessionId" ) ).getOrElse( 
               throw new Exception( "error making evalRequestLabel" )
             ),
+          ( sessionId : String ) => {
+            DSLCommLinkCtor.ExchangeLabels.evalResponseLabel()(
+              Left[String,String]( sessionId )
+            ).getOrElse( throw new Exception( "unable to make evaResponseLabel" ) )
+          },
+          useBiLink,
+          flip
+        )
+      }
+
+      def indirectEvalLooper(
+        node : String,
+        useBiLink : Option[Boolean] = None,
+        flip : Boolean = false
+      ) : IndirectMsgProcessor = {
+        IndirectMsgProcessor(
           node,
+          DSLCommLinkCtor.ExchangeLabels.evalRequestLabel()( Right[String,String]( "SessionId" ) ).getOrElse( 
+              throw new Exception( "error making evalRequestLabel" )
+            ),
           ( sessionId : String ) => {
             DSLCommLinkCtor.ExchangeLabels.evalResponseLabel()(
               Left[String,String]( sessionId )
@@ -1852,9 +2364,32 @@ package diesel {
             evalLooper( node, useBiLink, flip )
           )
         )
-      }      
+      }
+      
+      def indirectStdLooper(
+        node : String,
+        useBiLink : Option[Boolean] = None,
+        flip : Boolean = false
+      ) : MsgProcessorBlock = {
+        MsgProcessorBlock(
+          List[MessageProcessor](
+            indirectAdminLooper( node, useBiLink, flip ),
+            indirectEvalLooper( node, useBiLink, flip )
+          )
+        )
+      }
     }
-  }  
+  }
+
+  object CommsLinkMapper extends MapProxy[String,DSLCommLinkCtor.StdEvaluationRequestChannel] {
+    @transient
+    override val self = new HashMap[String,DSLCommLinkCtor.StdEvaluationRequestChannel]()
+  }
+
+  object EvalNodeMapper extends MapProxy[String,DieselEngineCtor.StdEvalChannel] {
+    @transient
+    override val self = new HashMap[String,DieselEngineCtor.StdEvalChannel]()
+  }
 
   object Server extends Serializable {
     lazy val helpMsg = 
@@ -1911,7 +2446,10 @@ package diesel {
       _looper match {
         case Some( mpb ) => mpb
         case None => {
-          val mpb = e.stdLooper()
+          val nodeId = UUID.randomUUID()
+          val nodeKey = nodeId.toString
+          EvalNodeMapper += ( nodeKey -> DieselEngineCtor.agent( "/dieselProtocol" ) )
+          val mpb = e.indirectStdLooper( nodeKey )
           _looper = Some( mpb )
           mpb
         }
