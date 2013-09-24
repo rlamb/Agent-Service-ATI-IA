@@ -156,13 +156,13 @@ package diesel {
       object AgentKVDBNodeFactory
              extends BaseAgentKVDBNodeFactoryT
              with AgentKVDBNodeFactoryT
-             with WireTap with Journalist
+             with WireTap
              with Serializable {                       
         type AgentCache[ReqBody <: PersistedKVDBNodeRequest, RspBody <: PersistedKVDBNodeResponse] = AgentKVDB[ReqBody,RspBody]
         //type AgentNode[Rq <: PersistedKVDBNodeRequest, Rs <: PersistedKVDBNodeResponse] = AgentKVDBNode[Rq,Rs]
 
         override def tap [A] ( fact : A ) : Unit = {
-          reportage( fact )
+          BasicLogService.reportage( fact )
         }
 
         override def mkCache[ReqBody <: PersistedKVDBNodeRequest, RspBody <: PersistedKVDBNodeResponse]( 
@@ -210,26 +210,26 @@ package diesel {
               override def asStoreValue(
                 rsrc : mTT.Resource
               ) : CnxnCtxtLeaf[String,String,String] with Factual = {
-                tweet(
+                BasicLogService.tweet(
                   "In asStoreValue on " + this + " for resource: " + rsrc
                 )
                 val storageDispatch = 
                   rsrc match {
                     case k : mTT.Continuation => {
-                      tweet(
+                      BasicLogService.tweet(
                         "Resource " + rsrc + " is a continuation"
                       )
                       continuationStorageType
                     }
                     case _ => {
-                      tweet(
+                      BasicLogService.tweet(
                         "Resource " + rsrc + " is a value"
                       )
                       valueStorageType
                     }
                   };
                 
-                tweet(
+                BasicLogService.tweet(
                   "storageDispatch: " + storageDispatch
                 )
                 
@@ -243,13 +243,13 @@ package diesel {
                       new String( Base64Coder.encode( baos.toByteArray() ) )
                     }
                     case "CnxnCtxtLabel" => {
-                      tweet(
+                      BasicLogService.tweet(
                         "warning: CnxnCtxtLabel method is using XStream"
                       )
                       toXQSafeJSONBlob( rsrc )                            
                     }
                     case "XStream" => {
-                      tweet(
+                      BasicLogService.tweet(
                         "using XStream method"
                       )
                       
@@ -267,7 +267,7 @@ package diesel {
               def asCacheValue(
                 ccl : CnxnCtxtLabel[String,String,String]
               ) : ConcreteHL.HLExpr = {
-                tweet(
+                BasicLogService.tweet(
                   "converting to cache value"
                 )
                 ccl match {
@@ -359,7 +359,7 @@ package diesel {
                         }
                       }
                       case None => {
-                        tweet( "Unexpected matchMap failure: " + key + " " + k )
+                        BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
                         throw new Exception( "matchMap failure " + key + " " + k )
                       }
                     }                                           
@@ -374,7 +374,7 @@ package diesel {
             override def asCacheK(
               ccl : CnxnCtxtLabel[String,String,String]
             ) : Option[mTT.Continuation] = {
-              tweet(
+              BasicLogService.tweet(
                 "converting to cache continuation stack" + ccl
               )
               ccl match {
@@ -385,7 +385,7 @@ package diesel {
                   val unBlob =
                     continuationStorageType match {
                       case "CnxnCtxtLabel" => {
-                        // tweet(
+                        // BasicLogService.tweet(
                         //                    "warning: CnxnCtxtLabel method is using XStream"
                         //                  )
                         fromXQSafeJSONBlob( rv )
@@ -439,7 +439,7 @@ package diesel {
               throw new Exception( "shouldn't be calling this version of asCacheK" )
             }
             override def persistenceManifest : Option[PersistenceManifest] = {
-              tweet(
+              BasicLogService.tweet(
                 (
                   "AgentKVDB : "
                   + "\nthis: " + this
@@ -478,7 +478,7 @@ package diesel {
                 here : URI,
                 configFileName : Option[String]
               ) : HashAgentKVDB[ReqBody,RspBody] = {
-                tweet(
+                BasicLogService.tweet(
                   (
                     "AgentKVDBNode : "
                     + "\nthis: " + this
@@ -528,26 +528,26 @@ package diesel {
                     override def asStoreValue(
                       rsrc : mTT.Resource
                     ) : CnxnCtxtLeaf[String,String,String] with Factual = {
-                      tweet(
+                      BasicLogService.tweet(
                         "In asStoreValue on " + this + " for resource: " + rsrc
                       )
                       val storageDispatch = 
                         rsrc match {
                           case k : mTT.Continuation => {
-                            tweet(
+                            BasicLogService.tweet(
                               "Resource " + rsrc + " is a continuation"
                             )
                             continuationStorageType
                           }
                           case _ => {
-                            tweet(
+                            BasicLogService.tweet(
                               "Resource " + rsrc + " is a value"
                             )
                             valueStorageType
                           }
                         };
                       
-                      tweet(
+                      BasicLogService.tweet(
                         "storageDispatch: " + storageDispatch
                       )
                       
@@ -561,13 +561,13 @@ package diesel {
                             new String( Base64Coder.encode( baos.toByteArray() ) )
                           }
                           case "CnxnCtxtLabel" => {
-                            tweet(
+                            BasicLogService.tweet(
                               "warning: CnxnCtxtLabel method is using XStream"
                             )
                             toXQSafeJSONBlob( rsrc )                              
                           }
                           case "XStream" => {
-                            tweet(
+                            BasicLogService.tweet(
                               "using XStream method"
                             )
                             
@@ -585,7 +585,7 @@ package diesel {
                     def asCacheValue(
                       ccl : CnxnCtxtLabel[String,String,String]
                     ) : ConcreteHL.HLExpr = {
-                      tweet(
+                      BasicLogService.tweet(
                         "converting to cache value"
                       )
                       ccl match {
@@ -677,7 +677,7 @@ package diesel {
                               }
                             }
                             case None => {
-                              tweet( "Unexpected matchMap failure: " + key + " " + k )
+                              BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
                               throw new Exception( "matchMap failure " + key + " " + k )
                             }
                           }                                             
@@ -692,7 +692,7 @@ package diesel {
                   override def asCacheK(
                     ccl : CnxnCtxtLabel[String,String,String]
                   ) : Option[mTT.Continuation] = {
-                    tweet(
+                    BasicLogService.tweet(
                       "converting to cache continuation stack" + ccl
                     )
                     ccl match {
@@ -703,7 +703,7 @@ package diesel {
                         val unBlob =
                           continuationStorageType match {
                             case "CnxnCtxtLabel" => {
-                              // tweet(
+                              // BasicLogService.tweet(
                               //                      "warning: CnxnCtxtLabel method is using XStream"
                               //                    )
                               fromXQSafeJSONBlob( rv )
@@ -758,7 +758,7 @@ package diesel {
                   }
 
                   override def persistenceManifest : Option[PersistenceManifest] = {
-                    tweet(
+                    BasicLogService.tweet(
                       (
                         "HashAgentKVDB : "
                         + "\nthis: " + this
@@ -803,7 +803,7 @@ package diesel {
                 here : URI,
                 configFileName : Option[String]
               ) : HashAgentKVDB[ReqBody,RspBody] = {
-                tweet(
+                BasicLogService.tweet(
                   (
                     "AgentKVDBNode : "
                     + "\nthis: " + this
@@ -853,26 +853,26 @@ package diesel {
                     override def asStoreValue(
                       rsrc : mTT.Resource
                     ) : CnxnCtxtLeaf[String,String,String] with Factual = {
-                      tweet(
+                      BasicLogService.tweet(
                         "In asStoreValue on " + this + " for resource: " + rsrc
                       )
                       val storageDispatch = 
                         rsrc match {
                           case k : mTT.Continuation => {
-                            tweet(
+                            BasicLogService.tweet(
                               "Resource " + rsrc + " is a continuation"
                             )
                             continuationStorageType
                           }
                           case _ => {
-                            tweet(
+                            BasicLogService.tweet(
                               "Resource " + rsrc + " is a value"
                             )
                             valueStorageType
                           }
                         };
                       
-                      tweet(
+                      BasicLogService.tweet(
                         "storageDispatch: " + storageDispatch
                       )
                       
@@ -886,13 +886,13 @@ package diesel {
                             new String( Base64Coder.encode( baos.toByteArray() ) )
                           }
                           case "CnxnCtxtLabel" => {
-                            tweet(
+                            BasicLogService.tweet(
                               "warning: CnxnCtxtLabel method is using XStream"
                             )
                             toXQSafeJSONBlob( rsrc )                              
                           }
                           case "XStream" => {
-                            tweet(
+                            BasicLogService.tweet(
                               "using XStream method"
                             )
                             
@@ -910,7 +910,7 @@ package diesel {
                     def asCacheValue(
                       ccl : CnxnCtxtLabel[String,String,String]
                     ) : ConcreteHL.HLExpr = {
-                      tweet(
+                      BasicLogService.tweet(
                         "converting to cache value"
                       )
                       ccl match {
@@ -1002,7 +1002,7 @@ package diesel {
                               }
                             }
                             case None => {
-                              tweet( "Unexpected matchMap failure: " + key + " " + k )
+                              BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
                               throw new Exception( "matchMap failure " + key + " " + k )
                             }
                           }                                             
@@ -1017,7 +1017,7 @@ package diesel {
                   override def asCacheK(
                     ccl : CnxnCtxtLabel[String,String,String]
                   ) : Option[mTT.Continuation] = {
-                    tweet(
+                    BasicLogService.tweet(
                       "converting to cache continuation stack" + ccl
                     )
                     ccl match {
@@ -1028,7 +1028,7 @@ package diesel {
                         val unBlob =
                           continuationStorageType match {
                             case "CnxnCtxtLabel" => {
-                              // tweet(
+                              // BasicLogService.tweet(
                               //                      "warning: CnxnCtxtLabel method is using XStream"
                               //                    )
                               fromXQSafeJSONBlob( rv )
@@ -1082,7 +1082,7 @@ package diesel {
                     throw new Exception( "shouldn't be calling this version of asCacheK" )
                   }
                   override def persistenceManifest : Option[PersistenceManifest] = {
-                    tweet(
+                    BasicLogService.tweet(
                       (
                         "HashAgentKVDB : "
                         + "\nthis: " + this
@@ -1150,7 +1150,7 @@ package diesel {
                 here : URI,
                 configFileName : Option[String]
               ) : HashAgentKVDB[ReqBody,RspBody] = {
-                tweet(
+                BasicLogService.tweet(
                   (
                     "AgentKVDBNode : "
                     + "\nthis: " + this
@@ -1200,26 +1200,26 @@ package diesel {
                     override def asStoreValue(
                       rsrc : mTT.Resource
                     ) : CnxnCtxtLeaf[String,String,String] with Factual = {
-                      tweet(
+                      BasicLogService.tweet(
                         "In asStoreValue on " + this + " for resource: " + rsrc
                       )
                       val storageDispatch = 
                         rsrc match {
                           case k : mTT.Continuation => {
-                            tweet(
+                            BasicLogService.tweet(
                               "Resource " + rsrc + " is a continuation"
                             )
                             continuationStorageType
                           }
                           case _ => {
-                            tweet(
+                            BasicLogService.tweet(
                               "Resource " + rsrc + " is a value"
                             )
                             valueStorageType
                           }
                         };
                       
-                      tweet(
+                      BasicLogService.tweet(
                         "storageDispatch: " + storageDispatch
                       )
                       
@@ -1233,13 +1233,13 @@ package diesel {
                             new String( Base64Coder.encode( baos.toByteArray() ) )
                           }
                           case "CnxnCtxtLabel" => {
-                            tweet(
+                            BasicLogService.tweet(
                               "warning: CnxnCtxtLabel method is using XStream"
                             )
                             toXQSafeJSONBlob( rsrc )                              
                           }
                           case "XStream" => {
-                            tweet(
+                            BasicLogService.tweet(
                               "using XStream method"
                             )
                             
@@ -1257,7 +1257,7 @@ package diesel {
                     def asCacheValue(
                       ccl : CnxnCtxtLabel[String,String,String]
                     ) : ConcreteHL.HLExpr = {
-                      tweet(
+                      BasicLogService.tweet(
                         "converting to cache value"
                       )
                       ccl match {
@@ -1349,7 +1349,7 @@ package diesel {
                               }
                             }
                             case None => {
-                              tweet( "Unexpected matchMap failure: " + key + " " + k )
+                              BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
                               throw new Exception( "matchMap failure " + key + " " + k )
                             }
                           }                                             
@@ -1364,7 +1364,7 @@ package diesel {
                   override def asCacheK(
                     ccl : CnxnCtxtLabel[String,String,String]
                   ) : Option[mTT.Continuation] = {
-                    tweet(
+                    BasicLogService.tweet(
                       "converting to cache continuation stack" + ccl
                     )
                     ccl match {
@@ -1375,7 +1375,7 @@ package diesel {
                         val unBlob =
                           continuationStorageType match {
                             case "CnxnCtxtLabel" => {
-                              // tweet(
+                              // BasicLogService.tweet(
                               //                      "warning: CnxnCtxtLabel method is using XStream"
                               //                    )
                               fromXQSafeJSONBlob( rv )
@@ -1429,7 +1429,7 @@ package diesel {
                     throw new Exception( "shouldn't be calling this version of asCacheK" )
                   }
                   override def persistenceManifest : Option[PersistenceManifest] = {
-                    tweet(
+                    BasicLogService.tweet(
                       (
                         "HashAgentKVDB : "
                         + "\nthis: " + this
@@ -1579,51 +1579,64 @@ package diesel {
       )( expr : ConcreteHL.HLExpr )(
         handler : Option[mTT.Resource] => Unit
       ): Unit = {
+        BasicLogService.tweet(
+          "entering method: evaluateExpression"
+          + "\nthis: " + this
+          + "\nnode: " + node
+          + "\nexpr: " + expr
+          + "\nhandler: " + handler
+        )
         expr match {
           case ConcreteHL.Bottom => {
             //throw new Exception( "divergence" )
-	    //println( "warning: divergent expression" )
-            tweet( "warning: divergent expression" )
-	    handler( None )
+            //println( "warning: divergent expression" )
+            BasicLogService.tweet( "warning: divergent expression" )
+            handler( None )
           }
           case ConcreteHL.FeedExpr( filter, cnxns ) => {
-            tweet( "method: evaluateExpression" )
-            tweet( "\nin ConcreteHL.FeedExpr case " )
-            tweet( "\nthis: " + this )
-            tweet( "\nnode: " + node )
-            tweet( "\nexpr: " + expr )
-            tweet( "\nhandler: " + handler )
-            tweet( "\n-----------------------------------------" )
-            tweet( "\nfilter: " + filter )
-            tweet( "\ncnxns: " + cnxns )
+            BasicLogService.tweet(
+              "method: evaluateExpression"
+              + "\nin ConcreteHL.FeedExpr case "
+              + "\nthis: " + this
+              + "\nnode: " + node
+              + "\nexpr: " + expr
+              + "\nhandler: " + handler
+              + "\n-----------------------------------------"
+              + "\nfilter: " + filter
+              + "\ncnxns: " + cnxns
+            )
             
             for( cnxn <- cnxns ) {
               val agntCnxn : acT.AgentCnxn =
                 new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
               reset {
                 
-                tweet( "method: evaluateExpression" )
-                tweet( "\n calling node.subscribe " )
-                tweet( "\nthis: " + this )
-                tweet( "\nnode: " + node )
-                tweet( "\nexpr: " + expr )
-                tweet( "\nhandler: " + handler )
-                tweet( "\n-----------------------------------------" )
-                tweet( "\nagntCnxn: " + agntCnxn )
-                tweet( "\nfilter: " + filter )
+                BasicLogService.tweet(
+                  "method: evaluateExpression"
+                  + "\n calling node.subscribe "
+                  + "\nthis: " + this
+                  + "\nnode: " + node
+                  + "\nexpr: " + expr
+                  + "\nhandler: " + handler
+                  + "\n-----------------------------------------"
+                  + "\nagntCnxn: " + agntCnxn
+                  + "\nfilter: " + filter
+                )
 
                 for( e <- node.subscribe( agntCnxn )( filter ) ) {
 
-                  tweet( "method: evaluateExpression" )
-                  tweet( "\n returned from node.subscribe " )
-                  tweet( "\nthis: " + this )
-                  tweet( "\nnode: " + node )
-                  tweet( "\nexpr: " + expr )
-                  tweet( "\nhandler: " + handler )
-                  tweet( "\n-----------------------------------------" )
-                  tweet( "\nagntCnxn: " + agntCnxn )
-                  tweet( "\nfilter: " + filter )
-                  tweet( "\ne: " + e )
+                  BasicLogService.tweet(
+                    "method: evaluateExpression"
+                    + "\n returned from node.subscribe "
+                    + "\nthis: " + this
+                    + "\nnode: " + node
+                    + "\nexpr: " + expr
+                    + "\nhandler: " + handler
+                    + "\n-----------------------------------------"
+                    + "\nagntCnxn: " + agntCnxn
+                    + "\nfilter: " + filter
+                    + "\ne: " + e
+                  )
 
                   handler( e )
                 }
@@ -1632,43 +1645,49 @@ package diesel {
           }
           case ConcreteHL.ScoreExpr( filter, cnxns, staff ) => {
             
-            tweet( "method: evaluateExpression" )
-            tweet( "\nin ConcreteHL.ScoreExpr case " )
-            tweet( "\nthis: " + this )
-            tweet( "\nnode: " + node )
-            tweet( "\nexpr: " + expr )
-            tweet( "\nhandler: " + handler )
-            tweet( "\n-----------------------------------------" )
-            tweet( "\nfilter: " + filter )
-            tweet( "\ncnxns: " + cnxns )
-            tweet( "\ncnxns: " + staff )
+            BasicLogService.tweet(
+              "method: evaluateExpression"
+              + "\nin ConcreteHL.ScoreExpr case "
+              + "\nthis: " + this
+              + "\nnode: " + node
+              + "\nexpr: " + expr
+              + "\nhandler: " + handler
+              + "\n-----------------------------------------"
+              + "\nfilter: " + filter
+              + "\ncnxns: " + cnxns
+              + "\ncnxns: " + staff
+            )
 
             for( cnxn <- cnxns ) {
               val agntCnxn : acT.AgentCnxn =
                 new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
               reset {
-                tweet( "method: evaluateExpression" )
-                tweet( "\n calling node.subscribe " )
-                tweet( "\nthis: " + this )
-                tweet( "\nnode: " + node )
-                tweet( "\nexpr: " + expr )
-                tweet( "\nhandler: " + handler )
-                tweet( "\n-----------------------------------------" )
-                tweet( "\nagntCnxn: " + agntCnxn )
-                tweet( "\nfilter: " + filter )
+                BasicLogService.tweet(
+                  "method: evaluateExpression"
+                  + "\n calling node.subscribe "
+                  + "\nthis: " + this
+                  + "\nnode: " + node
+                  + "\nexpr: " + expr
+                  + "\nhandler: " + handler
+                  + "\n-----------------------------------------"
+                  + "\nagntCnxn: " + agntCnxn
+                  + "\nfilter: " + filter
+                )
 
                 for( e <- node.subscribe( agntCnxn )( filter ) ) {
                   
-                  tweet( "method: evaluateExpression" )
-                  tweet( "\n returned from node.subscribe " )
-                  tweet( "\nthis: " + this )
-                  tweet( "\nnode: " + node )
-                  tweet( "\nexpr: " + expr )
-                  tweet( "\nhandler: " + handler )
-                  tweet( "\n-----------------------------------------" )
-                  tweet( "\nagntCnxn: " + agntCnxn )
-                  tweet( "\nfilter: " + filter )
-                  tweet( "\ne: " + e )
+                  BasicLogService.tweet(
+                    "method: evaluateExpression"
+                    + "\n returned from node.subscribe "
+                    + "\nthis: " + this
+                    + "\nnode: " + node
+                    + "\nexpr: " + expr
+                    + "\nhandler: " + handler
+                    + "\n-----------------------------------------"
+                    + "\nagntCnxn: " + agntCnxn
+                    + "\nfilter: " + filter
+                    + "\ne: " + e
+                  )
 
                   handler( e )
                 }
@@ -1677,37 +1696,41 @@ package diesel {
           }
           case ConcreteHL.InsertContent( filter, cnxns, value : String ) => {
             
-            tweet( "method: evaluateExpression" )
-            tweet( "\nin ConcreteHL.FeedExpr case " )
-            tweet( "\nthis: " + this )
-            tweet( "\nnode: " + node )
-            tweet( "\nexpr: " + expr )
-            tweet( "\nhandler: " + handler )
-            tweet( "\n-----------------------------------------" )
-            tweet( "\nfilter: " + filter )
-            tweet( "\ncnxns: " + cnxns )
-            tweet( "\nvalue: " + value )
-
+            BasicLogService.tweet(
+              "method: evaluateExpression"
+              + "\nin ConcreteHL.InsertContent case "
+              + "\nthis: " + this
+              + "\nnode: " + node
+              + "\nexpr: " + expr
+              + "\nhandler: " + handler
+              + "\n-----------------------------------------"
+              + "\nfilter: " + filter
+              + "\ncnxns: " + cnxns
+              + "\nvalue: " + value
+            )
+              
             for( cnxn <- cnxns ) {
               val agntCnxn : acT.AgentCnxn =
                 new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
               reset {
                 
-                tweet( "method: evaluateExpression" )
-                tweet( "\n calling node.publish " )
-                tweet( "\nthis: " + this )
-                tweet( "\nnode: " + node )
-                tweet( "\nexpr: " + expr )
-                tweet( "\nhandler: " + handler )
-                tweet( "\n-----------------------------------------" )
-                tweet( "\nagntCnxn: " + agntCnxn )
-                tweet( "\nfilter: " + filter )
-                tweet( "\nvalue: " + value )
+                BasicLogService.tweet(
+                  "method: evaluateExpression"                  
+                  + "\n calling node.publish "
+                  + "\nthis: " + this
+                  + "\nnode: " + node
+                  + "\nexpr: " + expr
+                  + "\nhandler: " + handler
+                  + "\n-----------------------------------------"
+                  + "\nagntCnxn: " + agntCnxn
+                  + "\nfilter: " + filter
+                  + "\nvalue: " + value
+                )
 
                 node.publish( agntCnxn )( filter, mTT.Ground( ConcreteHL.PostedExpr( value ) ) )
               }
 
-              handler( None )
+              handler( Some( mTT.Ground( ConcreteHL.Bottom ) ) )
             }
           }
         }
@@ -1718,52 +1741,167 @@ package diesel {
       )( expr : ConcreteHL.HLExpr )(
         handler : Option[mTT.Resource] => Unit
       ): Unit = {
+        BasicLogService.tweet(
+          "entering method: evaluateExpression"
+          + "\nthis: " + this
+          + "\nnode: " + node
+          + "\nexpr: " + expr
+          + "\nhandler: " + handler
+          + "\n-----------------------------------------"
+          + "\n n: " + EvalNodeMapper.get( node )
+        )
         for ( n <- EvalNodeMapper.get( node ) ) {
           expr match {
             case ConcreteHL.Bottom => {
               //throw new Exception( "divergence" )
-	      //println( "warning: divergent expression" )
-              tweet( "warning: divergent expression" )
-	      handler( None )
+              //println( "warning: divergent expression" )
+              BasicLogService.tweet( "warning: divergent expression" )
+              handler( None )
             }
-            case ConcreteHL.FeedExpr( filter, cnxns ) => {
-              tweet( "method: evaluateExpression" )
-              tweet( "\nin ConcreteHL.FeedExpr case " )
-              tweet( "\nthis: " + this )
-              tweet( "\nnode: " + node )
-              tweet( "\nexpr: " + expr )
-              tweet( "\nhandler: " + handler )
-              tweet( "\n-----------------------------------------" )
-              tweet( "\nfilter: " + filter )
-              tweet( "\ncnxns: " + cnxns )
+            case ConcreteHL.ReadExpr( filter, cnxns ) => {
+              BasicLogService.tweet(
+                "method: evaluateExpression"
+                + "\nin ConcreteHL.ReadExpr case "
+                + "\nthis: " + this
+                + "\nnode: " + node
+                + "\nexpr: " + expr
+                + "\nhandler: " + handler
+                + "\n-----------------------------------------"
+                + "\nfilter: " + filter
+                + "\ncnxns: " + cnxns
+              )
               
               for( cnxn <- cnxns ) {
                 val agntCnxn : acT.AgentCnxn =
                   new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
                 reset {
                   
-                  tweet( "method: evaluateExpression" )
-                  tweet( "\n calling node.subscribe " )
-                  tweet( "\nthis: " + this )
-                  tweet( "\nnode: " + node )
-                  tweet( "\nexpr: " + expr )
-                  tweet( "\nhandler: " + handler )
-                  tweet( "\n-----------------------------------------" )
-                  tweet( "\nagntCnxn: " + agntCnxn )
-                  tweet( "\nfilter: " + filter )
+                  BasicLogService.tweet(
+                    "method: evaluateExpression"
+                    + "\n calling node.read "
+                    + "\nthis: " + this
+                    + "\nnode: " + node
+                    + "\nexpr: " + expr
+                    + "\nhandler: " + handler
+                    + "\n-----------------------------------------"
+                    + "\nagntCnxn: " + agntCnxn
+                    + "\nfilter: " + filter
+                  )
+                  
+                  for( e <- n.read( agntCnxn )( filter ) ) {
+                    
+                    BasicLogService.tweet(
+                      "method: evaluateExpression"
+                      + "\n returned from node.read "
+                      + "\nthis: " + this
+                      + "\nnode: " + node
+                      + "\nexpr: " + expr
+                      + "\nhandler: " + handler
+                      + "\n-----------------------------------------"
+                      + "\nagntCnxn: " + agntCnxn
+                      + "\nfilter: " + filter
+                      + "\ne: " + e
+                    )
+                    
+                    handler( e )
+                  }
+                }
+              }
+            }
+            case ConcreteHL.FetchExpr( filter, cnxns ) => {
+              BasicLogService.tweet(
+                "method: evaluateExpression"
+                + "\nin ConcreteHL.FetchExpr case "
+                + "\nthis: " + this
+                + "\nnode: " + node
+                + "\nexpr: " + expr
+                + "\nhandler: " + handler
+                + "\n-----------------------------------------"
+                + "\nfilter: " + filter
+                + "\ncnxns: " + cnxns
+              )
+              
+              for( cnxn <- cnxns ) {
+                val agntCnxn : acT.AgentCnxn =
+                  new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
+                reset {
+                  
+                  BasicLogService.tweet(
+                    "method: evaluateExpression"
+                    + "\n calling node.fetch "
+                    + "\nthis: " + this
+                    + "\nnode: " + node
+                    + "\nexpr: " + expr
+                    + "\nhandler: " + handler
+                    + "\n-----------------------------------------"
+                    + "\nagntCnxn: " + agntCnxn
+                    + "\nfilter: " + filter
+                  )
+                  
+                  for( e <- n.fetch( agntCnxn )( filter ) ) {
+                    
+                    BasicLogService.tweet(
+                      "method: evaluateExpression"
+                      + "\n returned from node.fetch "
+                      + "\nthis: " + this
+                      + "\nnode: " + node
+                      + "\nexpr: " + expr
+                      + "\nhandler: " + handler
+                      + "\n-----------------------------------------"
+                      + "\nagntCnxn: " + agntCnxn
+                      + "\nfilter: " + filter
+                      + "\ne: " + e
+                    )
+                    
+                    handler( e )
+                  }
+                }
+              }
+            }
+            case ConcreteHL.FeedExpr( filter, cnxns ) => {
+              BasicLogService.tweet(
+                "method: evaluateExpression"
+                + "\nin ConcreteHL.FeedExpr case "
+                + "\nthis: " + this
+                + "\nnode: " + node
+                + "\nexpr: " + expr
+                + "\nhandler: " + handler
+                + "\n-----------------------------------------"
+                + "\nfilter: " + filter
+                + "\ncnxns: " + cnxns
+              )
+              
+              for( cnxn <- cnxns ) {
+                val agntCnxn : acT.AgentCnxn =
+                  new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
+                reset {
+                  
+                  BasicLogService.tweet(
+                    "method: evaluateExpression"
+                    + "\n calling node.subscribe "
+                    + "\nthis: " + this
+                    + "\nnode: " + node
+                    + "\nexpr: " + expr
+                    + "\nhandler: " + handler
+                    + "\n-----------------------------------------"
+                    + "\nagntCnxn: " + agntCnxn
+                    + "\nfilter: " + filter
+                  )
                   
                   for( e <- n.subscribe( agntCnxn )( filter ) ) {
                     
-                    tweet( "method: evaluateExpression" )
-                    tweet( "\n returned from node.subscribe " )
-                    tweet( "\nthis: " + this )
-                    tweet( "\nnode: " + node )
-                    tweet( "\nexpr: " + expr )
-                    tweet( "\nhandler: " + handler )
-                    tweet( "\n-----------------------------------------" )
-                    tweet( "\nagntCnxn: " + agntCnxn )
-                    tweet( "\nfilter: " + filter )
-                    tweet( "\ne: " + e )
+                    BasicLogService.tweet(
+                      "method: evaluateExpression"
+                      + "\n returned from node.subscribe "
+                      + "\nthis: " + this
+                      + "\nnode: " + node
+                      + "\nexpr: " + expr
+                      + "\nhandler: " + handler
+                      + "\n-----------------------------------------"
+                      + "\nagntCnxn: " + agntCnxn
+                      + "\nfilter: " + filter
+                      + "\ne: " + e
+                    )
                     
                     handler( e )
                   }
@@ -1772,43 +1910,49 @@ package diesel {
             }
             case ConcreteHL.ScoreExpr( filter, cnxns, staff ) => {
               
-              tweet( "method: evaluateExpression" )
-              tweet( "\nin ConcreteHL.ScoreExpr case " )
-              tweet( "\nthis: " + this )
-              tweet( "\nnode: " + node )
-              tweet( "\nexpr: " + expr )
-              tweet( "\nhandler: " + handler )
-              tweet( "\n-----------------------------------------" )
-              tweet( "\nfilter: " + filter )
-              tweet( "\ncnxns: " + cnxns )
-              tweet( "\ncnxns: " + staff )
+              BasicLogService.tweet(
+                "method: evaluateExpression"
+                + "\nin ConcreteHL.ScoreExpr case "
+                + "\nthis: " + this
+                + "\nnode: " + node
+                + "\nexpr: " + expr
+                + "\nhandler: " + handler
+                + "\n-----------------------------------------"
+                + "\nfilter: " + filter
+                + "\ncnxns: " + cnxns
+                + "\ncnxns: " + staff
+              )
               
               for( cnxn <- cnxns ) {
                 val agntCnxn : acT.AgentCnxn =
                   new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
                 reset {
-                  tweet( "method: evaluateExpression" )
-                  tweet( "\n calling node.subscribe " )
-                  tweet( "\nthis: " + this )
-                  tweet( "\nnode: " + node )
-                  tweet( "\nexpr: " + expr )
-                  tweet( "\nhandler: " + handler )
-                  tweet( "\n-----------------------------------------" )
-                  tweet( "\nagntCnxn: " + agntCnxn )
-                  tweet( "\nfilter: " + filter )
+                  BasicLogService.tweet(
+                    "method: evaluateExpression"
+                    + "\n calling node.subscribe "
+                    + "\nthis: " + this
+                    + "\nnode: " + node
+                    + "\nexpr: " + expr
+                    + "\nhandler: " + handler
+                    + "\n-----------------------------------------"
+                    + "\nagntCnxn: " + agntCnxn
+                    + "\nfilter: " + filter
+                  )
                   
                   for( e <- n.subscribe( agntCnxn )( filter ) ) {
                     
-                    tweet( "method: evaluateExpression" )
-                    tweet( "\n returned from node.subscribe " )
-                    tweet( "\nthis: " + this )
-                    tweet( "\nnode: " + node )
-                    tweet( "\nexpr: " + expr )
-                    tweet( "\nhandler: " + handler )
-                    tweet( "\n-----------------------------------------" )
-                    tweet( "\nagntCnxn: " + agntCnxn )
-                    tweet( "\nfilter: " + filter )
-                    tweet( "\ne: " + e )
+                    BasicLogService.tweet(
+                      "method: evaluateExpression"
+                      + "\n returned from node.subscribe "
+                      + "\nthis: " + this
+                      + "\nnode: " + node
+                      + "\nexpr: " + expr
+                      + "\nhandler: " + handler
+                      + "\n-----------------------------------------"
+                      + "\nagntCnxn: " + agntCnxn
+                      + "\nfilter: " + filter
+                      + "\ne: " + e
+                    )
                     
                     handler( e )
                   }
@@ -1817,37 +1961,41 @@ package diesel {
             }
             case ConcreteHL.InsertContent( filter, cnxns, value : String ) => {
               
-              tweet( "method: evaluateExpression" )
-              tweet( "\nin ConcreteHL.FeedExpr case " )
-              tweet( "\nthis: " + this )
-              tweet( "\nnode: " + node )
-              tweet( "\nexpr: " + expr )
-              tweet( "\nhandler: " + handler )
-              tweet( "\n-----------------------------------------" )
-              tweet( "\nfilter: " + filter )
-              tweet( "\ncnxns: " + cnxns )
-              tweet( "\nvalue: " + value )
+              BasicLogService.tweet(
+                "method: evaluateExpression"
+                + "\nin ConcreteHL.FeedExpr case "
+                + "\nthis: " + this
+                + "\nnode: " + node
+                + "\nexpr: " + expr
+                + "\nhandler: " + handler
+                + "\n-----------------------------------------"
+                + "\nfilter: " + filter
+                + "\ncnxns: " + cnxns
+                + "\nvalue: " + value 
+              )
               
               for( cnxn <- cnxns ) {
                 val agntCnxn : acT.AgentCnxn =
                   new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
                 reset {
                   
-                  tweet( "method: evaluateExpression" )
-                  tweet( "\n calling node.publish " )
-                  tweet( "\nthis: " + this )
-                  tweet( "\nnode: " + node )
-                  tweet( "\nexpr: " + expr )
-                  tweet( "\nhandler: " + handler )
-                  tweet( "\n-----------------------------------------" )
-                  tweet( "\nagntCnxn: " + agntCnxn )
-                  tweet( "\nfilter: " + filter )
-                  tweet( "\nvalue: " + value )
+                  BasicLogService.tweet(
+                    "method: evaluateExpression"
+                    + "\n calling node.publish "
+                    + "\nthis: " + this
+                    + "\nnode: " + node
+                    + "\nexpr: " + expr
+                    + "\nhandler: " + handler
+                    + "\n-----------------------------------------"
+                    + "\nagntCnxn: " + agntCnxn
+                    + "\nfilter: " + filter
+                    + "\nvalue: " + value
+                  )
                   
                   n.publish( agntCnxn )( filter, mTT.Ground( ConcreteHL.PostedExpr( value ) ) )
                 }
                 
-                handler( None )
+                handler( Some( mTT.Ground( ConcreteHL.Bottom ) ) )
               }
             }
           }
@@ -1855,6 +2003,7 @@ package diesel {
       }
       
       trait MessageProcessorElements {
+        self : Serializable =>
         def erql() : CnxnCtxtLabel[String,String,String]
         def rspLabelCtor() : String => CnxnCtxtLabel[String,String,String]
         def useBiLink() : Option[Boolean]
@@ -1862,7 +2011,7 @@ package diesel {
       }
 
       trait MessageProcessor {
-        self : MessageProcessorElements =>
+        self : MessageProcessorElements with Serializable =>
 
         def innerLoop(
           erql : CnxnCtxtLabel[String,String,String],
@@ -1871,29 +2020,49 @@ package diesel {
           node : StdEvalChannel,
           rspLabelCtor : String => CnxnCtxtLabel[String,String,String]
         ) : Unit = {
-          // BUGBUG -- lgm : to accelerate progress at this level
-          // while waiting on a fix at the KVDB level the code has
-          // flipped around session id generation. The server now
-          // generates the session id. This means that the name of
-          // variable where the session id is bound is part of the
-          // contract between the client and the server. For this
-          // code to be more correct it should issue a check that
-          // the session id returned matches the session id
-          // assigned. This has to always be so because of the
-          // underlying mechanism. If it isn't there's a bug in
-          // the underlying comms structure.
-          //def loop() : Unit = {
+          BasicLogService.tweet(
+            "entering method: innerLoop"
+            + "\nthis: " + this
+            + "\nerql: " + erql
+            + "\nclient: " + client
+            + "\nserver: " + server
+            + "\nnode: " + node            
+            + "\nrspLabelCtor: " + rspLabelCtor
+          )
             reset { 
               for( e <- client.subscribe( erql ) ) {
+                BasicLogService.tweet(
+                  "method: innerLoop"
+                  + "\n completed client.subscribe "
+                  + "\nthis: " + this
+                  + "\nerql: " + erql
+                  + "\nclient: " + client
+                  + "\nserver: " + server
+                  + "\nnode: " + node
+                  + "\n-----------------------------------------"
+                  + "\ne: " + e
+                )
                 e match {
                   case Some( boundRsrc@DSLCommLink.mTT.RBoundAList( Some( DSLCommLink.mTT.Ground( expr ) ), subst ) ) => {
-                    tweet( "rsrc type: DSLCommLink.mTT.RBoundAList" )
+                    BasicLogService.tweet(
+                      "method: innerLoop"
+                      + "\n case rsrc type: DSLCommLink.mTT.RBoundAList"
+                      + "\n completed client.subscribe "
+                      + "\nthis: " + this
+                      + "\nerql: " + erql
+                      + "\nclient: " + client
+                      + "\nserver: " + server
+                      + "\nnode: " + node
+                      + "\n-----------------------------------------"
+                      + "\ne: " + e
+                    )
                     for( map <- boundRsrc.sbst; CnxnCtxtLeaf( Left( sessionId ) ) <- map.get( "SessionId" ) ) {
                       val erspl : CnxnCtxtLabel[String,String,String] = rspLabelCtor( sessionId )
                       
                       val forward : Option[mTT.Resource] => Unit =
                         {
                           ( optRsrc : Option[mTT.Resource] ) => {
+                            BasicLogService.tweet("Diesel.scala:2065 forward(" + optRsrc + ")")
                             for( mTT.Ground( v ) <- optRsrc ) {                              
                               reset {
                                 server.put( erspl, DSLCommLink.mTT.Ground( v ) )                                
@@ -1906,13 +2075,25 @@ package diesel {
                     }             
                   }
                   case Some( boundRsrc@DSLCommLink.mTT.RBoundHM( Some( DSLCommLink.mTT.Ground( expr ) ), subst ) ) => {
-                    tweet( "rsrc type: DSLCommLink.mTT.RBoundHM" )
+                    BasicLogService.tweet(
+                      "method: innerLoop"
+                      + "\n case rsrc type: DSLCommLink.mTT.RBoundHM"
+                      + "\n completed client.subscribe "
+                      + "\nthis: " + this
+                      + "\nerql: " + erql
+                      + "\nclient: " + client
+                      + "\nserver: " + server
+                      + "\nnode: " + node
+                      + "\n-----------------------------------------"
+                      + "\ne: " + e
+                    )
                     for( map <- boundRsrc.sbst; CnxnCtxtLeaf( Left( sessionId ) ) <- map.get( "SessionId" ) ) {
                       val erspl : CnxnCtxtLabel[String,String,String] = rspLabelCtor( sessionId )
                       
                       val forward : Option[mTT.Resource] => Unit =
                         {
                           ( optRsrc : Option[mTT.Resource] ) => {
+                            BasicLogService.tweet("Diesel.scala:2096 forward(" + optRsrc + ")")
                             for( mTT.Ground( v ) <- optRsrc ) {                              
                               reset {
                                 server.put( erspl, DSLCommLink.mTT.Ground( v ) )
@@ -1928,7 +2109,18 @@ package diesel {
                   case Some( rsrc ) => {
                     rsrc match {
                       case boundRsrc@DSLCommLink.mTT.RBoundHM( innerOptRsrc, subst ) => {
-                        tweet( "rsrc type: DSLCommLink.mTT.RBoundHM" )
+                        BasicLogService.tweet(
+                          "method: innerLoop"
+                          + "\n case rsrc type: DSLCommLink.mTT.RBoundHM"
+                          + "\n completed client.subscribe "
+                          + "\nthis: " + this
+                          + "\nerql: " + erql
+                          + "\nclient: " + client
+                          + "\nserver: " + server
+                          + "\nnode: " + node
+                          + "\n-----------------------------------------"
+                          + "\ne: " + e
+                        )
                         innerOptRsrc match {
                           case Some( DSLCommLink.mTT.Ground( expr ) ) => {
                             for( map <- boundRsrc.sbst; CnxnCtxtLeaf( Left( sessionId ) ) <- map.get( "SessionId" ) ) {
@@ -1937,6 +2129,7 @@ package diesel {
                               val forward : Option[mTT.Resource] => Unit =
                                 {
                                   ( optRsrc : Option[mTT.Resource] ) => {
+                                    BasicLogService.tweet("Diesel.scala:2132 forward(" + optRsrc + ")")
                                     for( mTT.Ground( v ) <- optRsrc ) {                                      
                                       reset {
                                         server.put( erspl, DSLCommLink.mTT.Ground( v ) )
@@ -1949,22 +2142,53 @@ package diesel {
                             }
                           }
                           case Some( innerRrsc ) => {
-                            tweet( "unexpected inner rsrc type: " + innerRrsc )
-                            tweet( "inner rsrc type: " + innerRrsc.getClass )
+                            BasicLogService.tweet(
+                              "method: innerLoop"
+                              + "\n case unexpected inner rsrc type: " + innerRrsc
+                              + "\ninner rsrc type: " + innerRrsc.getClass
+                              + "\n completed client.subscribe "
+                              + "\nthis: " + this
+                              + "\nerql: " + erql
+                              + "\nclient: " + client
+                              + "\nserver: " + server
+                              + "\nnode: " + node
+                              + "\n-----------------------------------------"
+                              + "\ne: " + e
+                            )
                           }
                         }                      
                       }
                       case _ => {
-                        tweet( "unexpected rsrc type: " + rsrc )
-                        tweet( "rsrc type: " + rsrc.getClass )
+                        BasicLogService.tweet(
+                          "method: innerLoop"
+                          + "\n case unexpected rsrc type: " + rsrc
+                          + "\ninner rsrc type: " + rsrc.getClass
+                          + "\n completed client.subscribe "
+                          + "\nthis: " + this
+                          + "\nerql: " + erql
+                          + "\nclient: " + client
+                          + "\nserver: " + server
+                          + "\nnode: " + node
+                          + "\n-----------------------------------------"
+                          + "\ne: " + e
+                        )
                       }
                     }             
                   }
                   case None => {
-                    tweet( "server loop waiting." )
+                    BasicLogService.tweet( "server loop waiting." )
                   }
                   case _ => {
-                    tweet( "rsrc not handled: " + e )
+                    BasicLogService.tweet(
+                      "method: innerLoop"
+                      + "\n rsrc not handled: " + e
+                      + "\n completed client.subscribe "
+                      + "\nthis: " + this
+                      + "\nerql: " + erql
+                      + "\nclient: " + client
+                      + "\nserver: " + server
+                      + "\nnode: " + node
+                    )
                   }
                 }
               }
@@ -1980,29 +2204,37 @@ package diesel {
           node : String,
           rspLabelCtor : String => CnxnCtxtLabel[String,String,String]
         ) : Unit = {
-          // BUGBUG -- lgm : to accelerate progress at this level
-          // while waiting on a fix at the KVDB level the code has
-          // flipped around session id generation. The server now
-          // generates the session id. This means that the name of
-          // variable where the session id is bound is part of the
-          // contract between the client and the server. For this
-          // code to be more correct it should issue a check that
-          // the session id returned matches the session id
-          // assigned. This has to always be so because of the
-          // underlying mechanism. If it isn't there's a bug in
-          // the underlying comms structure.
-          //def loop() : Unit = {
+          BasicLogService.tweet(
+            "entering method: innerLoop"
+            + "\nthis: " + this
+            + "\nerql: " + erql
+            + "\nclient: " + client
+            + "\nserver: " + server
+            + "\nnode: " + node            
+            + "\nrspLabelCtor: " + rspLabelCtor
+          )
             reset { 
               for( e <- client.subscribe( erql ) ) {
                 e match {
                   case Some( boundRsrc@DSLCommLink.mTT.RBoundAList( Some( DSLCommLink.mTT.Ground( expr ) ), subst ) ) => {
-                    tweet( "rsrc type: DSLCommLink.mTT.RBoundAList" )
+                    BasicLogService.tweet(
+                      "method: innerLoop"
+                      + "\n completed client.subscribe "
+                      + "\nthis: " + this
+                      + "\nerql: " + erql
+                      + "\nclient: " + client
+                      + "\nserver: " + server
+                      + "\nnode: " + node
+                      + "\n-----------------------------------------"
+                      + "\ne: " + e
+                    )
                     for( map <- boundRsrc.sbst; CnxnCtxtLeaf( Left( sessionId ) ) <- map.get( "SessionId" ) ) {
                       val erspl : CnxnCtxtLabel[String,String,String] = rspLabelCtor( sessionId )
                       
                       val forward : Option[mTT.Resource] => Unit =
                         {
                           ( optRsrc : Option[mTT.Resource] ) => {
+                            BasicLogService.tweet("Diesel.scala:2237 forward(" + optRsrc + ")")
                             for( mTT.Ground( v ) <- optRsrc ) {                              
                               reset {
                                 server.put( erspl, DSLCommLink.mTT.Ground( v ) )                                
@@ -2015,13 +2247,25 @@ package diesel {
                     }             
                   }
                   case Some( boundRsrc@DSLCommLink.mTT.RBoundHM( Some( DSLCommLink.mTT.Ground( expr ) ), subst ) ) => {
-                    tweet( "rsrc type: DSLCommLink.mTT.RBoundHM" )
+                    BasicLogService.tweet(
+                      "method: innerLoop"
+                      + "\n case rsrc type: DSLCommLink.mTT.RBoundHM"
+                      + "\n completed client.subscribe "
+                      + "\nthis: " + this
+                      + "\nerql: " + erql
+                      + "\nclient: " + client
+                      + "\nserver: " + server
+                      + "\nnode: " + node
+                      + "\n-----------------------------------------"
+                      + "\ne: " + e
+                    )
                     for( map <- boundRsrc.sbst; CnxnCtxtLeaf( Left( sessionId ) ) <- map.get( "SessionId" ) ) {
                       val erspl : CnxnCtxtLabel[String,String,String] = rspLabelCtor( sessionId )
                       
                       val forward : Option[mTT.Resource] => Unit =
                         {
                           ( optRsrc : Option[mTT.Resource] ) => {
+                            BasicLogService.tweet("Diesel.scala:2268 forward(" + optRsrc + ")")
                             for( mTT.Ground( v ) <- optRsrc ) {                              
                               reset {
                                 server.put( erspl, DSLCommLink.mTT.Ground( v ) )
@@ -2037,7 +2281,18 @@ package diesel {
                   case Some( rsrc ) => {
                     rsrc match {
                       case boundRsrc@DSLCommLink.mTT.RBoundHM( innerOptRsrc, subst ) => {
-                        tweet( "rsrc type: DSLCommLink.mTT.RBoundHM" )
+                        BasicLogService.tweet(
+                          "method: innerLoop"
+                          + "\n case rsrc type: DSLCommLink.mTT.RBoundHM"
+                          + "\n completed client.subscribe "
+                          + "\nthis: " + this
+                          + "\nerql: " + erql
+                          + "\nclient: " + client
+                          + "\nserver: " + server
+                          + "\nnode: " + node
+                          + "\n-----------------------------------------"
+                          + "\ne: " + e
+                        )
                         innerOptRsrc match {
                           case Some( DSLCommLink.mTT.Ground( expr ) ) => {
                             for( map <- boundRsrc.sbst; CnxnCtxtLeaf( Left( sessionId ) ) <- map.get( "SessionId" ) ) {
@@ -2046,6 +2301,7 @@ package diesel {
                               val forward : Option[mTT.Resource] => Unit =
                                 {
                                   ( optRsrc : Option[mTT.Resource] ) => {
+                                    BasicLogService.tweet("Diesel.scala:2304 forward(" + optRsrc + ")")
                                     for( mTT.Ground( v ) <- optRsrc ) {                                      
                                       reset {
                                         server.put( erspl, DSLCommLink.mTT.Ground( v ) )
@@ -2058,22 +2314,53 @@ package diesel {
                             }
                           }
                           case Some( innerRrsc ) => {
-                            tweet( "unexpected inner rsrc type: " + innerRrsc )
-                            tweet( "inner rsrc type: " + innerRrsc.getClass )
+                            BasicLogService.tweet(
+                              "method: innerLoop"
+                              + "\n case unexpected inner rsrc type: " + innerRrsc
+                              + "\ninner rsrc type: " + innerRrsc.getClass
+                              + "\n completed client.subscribe "
+                              + "\nthis: " + this
+                              + "\nerql: " + erql
+                              + "\nclient: " + client
+                              + "\nserver: " + server
+                              + "\nnode: " + node
+                              + "\n-----------------------------------------"
+                              + "\ne: " + e
+                            )
                           }
                         }                      
                       }
                       case _ => {
-                        tweet( "unexpected rsrc type: " + rsrc )
-                        tweet( "rsrc type: " + rsrc.getClass )
+                        BasicLogService.tweet(
+                          "method: innerLoop"
+                          + "\n case unexpected rsrc type: " + rsrc
+                          + "\ninner rsrc type: " + rsrc.getClass
+                          + "\n completed client.subscribe "
+                          + "\nthis: " + this
+                          + "\nerql: " + erql
+                          + "\nclient: " + client
+                          + "\nserver: " + server
+                          + "\nnode: " + node
+                          + "\n-----------------------------------------"
+                          + "\ne: " + e
+                        )
                       }
                     }             
                   }
                   case None => {
-                    tweet( "server loop waiting." )
+                    BasicLogService.tweet( "server loop waiting." )
                   }
                   case _ => {
-                    tweet( "rsrc not handled: " + e )
+                    BasicLogService.tweet(
+                      "method: innerLoop"
+                      + "\n rsrc not handled: " + e
+                      + "\n completed client.subscribe "
+                      + "\nthis: " + this
+                      + "\nerql: " + erql
+                      + "\nclient: " + client
+                      + "\nserver: " + server
+                      + "\nnode: " + node
+                    )
                   }
                 }
               }
@@ -2142,7 +2429,9 @@ package diesel {
         override val rspLabelCtor : String => CnxnCtxtLabel[String,String,String],
         override val useBiLink : Option[Boolean] = None,
         override val flip : Boolean = false
-      ) extends MessageProcessorElements
+      ) extends MessageProcessorElements with Serializable {
+        def this() = { this( null, null, None, false ) }
+      }
 
       object MsgProcessorVals extends Serializable {
         def apply(
@@ -2168,7 +2457,7 @@ package diesel {
         }
       }
 
-      class MsgProcessor(
+      case class MsgProcessor(
         @transient
         val node : StdEvalChannel,        
         @transient
@@ -2180,6 +2469,7 @@ package diesel {
       ) extends MsgProcessorVals(
         erql, rspLabelCtor, useBiLink, flip
       ) with MessageProcessor with Serializable {
+        def this() = { this( null, null, null, None, false ) }
         override def go( derefNodeEarly : Boolean = true ) : Unit = {
           if ( derefNodeEarly ) {
             messageProcessorLoop( erql, node, rspLabelCtor, useBiLink, flip )
@@ -2191,6 +2481,7 @@ package diesel {
         }
       }
 
+/*
       object MsgProcessor extends Serializable {
         def apply(
           node : StdEvalChannel,
@@ -2216,8 +2507,9 @@ package diesel {
           Some( ( mp.node, mp.erql, mp.rspLabelCtor, mp.useBiLink, mp.flip ) )
         }
       }
+ */
 
-      class IndirectMsgProcessor(
+      case class IndirectMsgProcessor(
         val node : String,
         @transient
         override val erql : CnxnCtxtLabel[String,String,String],
@@ -2228,6 +2520,7 @@ package diesel {
       ) extends MsgProcessorVals(
         erql, rspLabelCtor, useBiLink, flip
       ) with MessageProcessor with Serializable {
+        def this() = { this( null, null, null, None, false ) }
         override def go( derefNodeEarly : Boolean = false ) : Unit = {
           if ( derefNodeEarly ) {            
             for( n <- EvalNodeMapper.get( node ) ) {
@@ -2240,6 +2533,7 @@ package diesel {
         }
       }
 
+/*
       object IndirectMsgProcessor extends Serializable {
         def apply(
           node : String,
@@ -2265,6 +2559,7 @@ package diesel {
           Some( ( mp.node, mp.erql, mp.rspLabelCtor, mp.useBiLink, mp.flip ) )
         }
       }
+*/
 
       case class MsgProcessorBlock(
         @transient
@@ -2429,12 +2724,12 @@ package diesel {
     var _engine : Option[DieselEngineCtor.DieselEngine] = None
     def engine( s : Option[String] = Some( "eval.conf" ) ) : DieselEngineCtor.DieselEngine = {
       _engine match {
-	case Some( e ) => e
-	case None => {
-	  val e = new DieselEngineCtor.DieselEngine( s )
-	  _engine = Some( e )
-	  e
-	}
+        case Some( e ) => e
+        case None => {
+          val e = new DieselEngineCtor.DieselEngine( s )
+          _engine = Some( e )
+          e
+        }
       }
     }
 

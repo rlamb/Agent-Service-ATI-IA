@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.protegra-ati</groupId>
     <artifactId>agentservices-store-ia</artifactId>
-    <version>1.8.7-SNAPSHOT</version>
+    <version>1.9.2-SNAPSHOT</version>
     <name>${project.artifactId}</name>
     <description>Agent class library</description>
     <inceptionYear>2010</inceptionYear>
@@ -12,10 +12,11 @@
         <maven.compiler.source>1.5</maven.compiler.source>
         <maven.compiler.target>1.5</maven.compiler.target>
         <encoding>UTF-8</encoding>
-        <specialk.version>1.1.6.6</specialk.version>
+        <specialk.version>1.1.8.0</specialk.version>
         <scala.version>2.10.0</scala.version>
         <scala.versionsuffix>2.10</scala.versionsuffix>
         <casbah.version>2.5.1</casbah.version>
+        <!--casbah.version>2.6.2</casbah.version-->
         <scala.test.specs2.version>1.14</scala.test.specs2.version>
         <!-- Common plugin settings -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -26,27 +27,7 @@
         <vscaladoc.links.liftweb.baseurl>http://scala-tools.org/mvnsites/liftweb</vscaladoc.links.liftweb.baseurl>
     </properties>
 
-    <distributionManagement>
-        <repository>
-            <id>protegraRepo</id>
-            <url>ftp://ftp.protegra.com</url>
-        </repository>
-        <snapshotRepository>
-            <id>protegraRepo</id>
-            <url>ftp://ftp.protegra.com</url>
-            <uniqueVersion>true</uniqueVersion>
-        </snapshotRepository>
-    </distributionManagement>
-
     <repositories>
-        <repository>
-            <id>protegraRepo</id>
-            <url>ftp://ftp.protegra.com</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
         <repository>
             <id>scala-tools.org</id>
             <name>Scala-Tools Maven2 Repository</name>
@@ -108,7 +89,12 @@
             <artifactId>jline</artifactId>
             <version>${scala.version}</version>
         </dependency>
-
+        <dependency>
+          <groupId>org.scala-lang</groupId>
+          <artifactId>scala-reflect</artifactId>
+          <version>${scala.version}</version>
+        </dependency>            
+    
         <dependency>
             <groupId>com.biosimilarity.lift</groupId>
             <artifactId>specialK</artifactId>
@@ -347,6 +333,12 @@
                             <!--                            <version>2.10.0-SNAPSHOT</version>-->
                         </compilerPlugin>
                     </compilerPlugins>
+                    <launchers>
+                        <launcher>
+                            <id>diesel</id>
+                            <mainClass>com.protegra_ati.agentservices.runner.Diesel</mainClass>
+                        </launcher>
+                    </launchers>
                 </configuration>
                 <executions>
                     <execution>
