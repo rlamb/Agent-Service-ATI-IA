@@ -122,13 +122,7 @@ trait EvaluationCommsService extends CnxnString[String, String, String]{
       reset {
         try { 
           for(
-            e <- try { node().subscribe( erspl ) }
-            catch {
-              case e : Throwable => {
-                BasicLogService.tweetTrace( e.asInstanceOf[Exception] )
-                throw e
-              }
-            }
+            e <- node().subscribe( erspl )
           ) {
             onPost( e )
           }
