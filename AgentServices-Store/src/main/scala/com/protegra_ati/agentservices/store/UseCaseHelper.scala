@@ -983,15 +983,20 @@ package usage {
       import DSLCommLink.mTT
       def onGet(optRsrc: Option[mTT.Resource]): Unit = {
         println("onGet: optRsrc = " + optRsrc)
-        agentMgr().get(
-          fromTermString("all(a(_))").get,
-          List(PortableAgentCnxn(
-            new URI("a://b"),
-            "flat",
-            new URI("c://d")
-          )),
-          onGet
-        )
+        optRsrc match {
+          case None => ()
+          case Some(_) => {
+            agentMgr().get(
+              fromTermString("all(a(_))").get,
+              List(PortableAgentCnxn(
+                new URI("a://b"),
+                "flat",
+                new URI("c://d")
+              )),
+              onGet
+            )
+          }
+        }
       }
       agentMgr().get(
         fromTermString("all(a(_))").get,
