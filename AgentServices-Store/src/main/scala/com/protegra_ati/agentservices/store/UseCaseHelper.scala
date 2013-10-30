@@ -984,8 +984,7 @@ package usage {
       def onGet(optRsrc: Option[mTT.Resource]): Unit = {
         println("onGet: optRsrc = " + optRsrc)
         optRsrc match {
-          case None => ()
-          case Some(_) => {
+          case Some(mTT.RBoundHM(Some(mTT.Ground(ConcreteHL.PostedExpr(postedStr: String))), _)) => {
             agentMgr().get(
               fromTermString("all(a(_))").get,
               List(PortableAgentCnxn(
@@ -996,6 +995,7 @@ package usage {
               onGet
             )
           }
+          case _ => ()
         }
       }
       agentMgr().get(
