@@ -961,7 +961,7 @@ package usage {
     }
   }
   
-  object SimpleInsertFeedClient
+  object SimpleInsertRecGetClient
   extends EvaluationCommsService  
   with ChannelGeneration with EvalConfig with DSLCommLinkConfiguration     
   with FuzzyTerms with FuzzyStreams with FuzzyTermStreams with FuzzyMessageStreams
@@ -979,15 +979,28 @@ package usage {
         (optRsrc) => println("onPost: optRsrc = " + optRsrc)
       )
     }
-    def feed() = {
-      agentMgr().feed(
+    def recGet() = {
+      import DSLCommLink.mTT
+      def onGet(optRsrc: Option[mTT.Resource]): Unit = {
+        println("onGet: optRsrc = " + optRsrc)
+        agentMgr().get(
+          fromTermString("all(a(_))").get,
+          List(PortableAgentCnxn(
+            new URI("a://b"),
+            "flat",
+            new URI("c://d")
+          )),
+          onGet
+        )
+      }
+      agentMgr().get(
         fromTermString("all(a(_))").get,
         List(PortableAgentCnxn(
           new URI("a://b"),
           "flat",
           new URI("c://d")
         )),
-        (optRsrc) => println("onFeed: optRsrc = " + optRsrc)
+        onGet
       )
     }
   }
