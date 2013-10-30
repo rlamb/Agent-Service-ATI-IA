@@ -976,13 +976,13 @@ package usage {
           new URI("c://d")
         )),
         value,
-        (optRsrc) => println("onPost: optRsrc = " + optRsrc)
+        (optRsrc) => BasicLogService.tweet("onPost: optRsrc = " + optRsrc)
       )
     }
     def recGet() = {
       import DSLCommLink.mTT
       def onGet(optRsrc: Option[mTT.Resource]): Unit = {
-        println("onGet: optRsrc = " + optRsrc)
+        BasicLogService.tweet("onGet: optRsrc = " + optRsrc)
         optRsrc match {
           case Some(mTT.RBoundHM(Some(mTT.Ground(ConcreteHL.PostedExpr(postedStr: String))), _)) => {
             agentMgr().get(
