@@ -1625,9 +1625,10 @@ package diesel {
     }    
 
     def dslEvaluatorAgent[ReqBody <: PersistedKVDBNodeRequest, RspBody <: PersistedKVDBNodeResponse](
+      dataLocation : String = dslEvaluatorHostData,
       configFileNameOpt : Option[String] = Some( "eval.conf" )
     ): EvalChannel[ReqBody,RspBody] = {
-      setupDSLEvaluatorNode[ReqBody,RspBody]()( configFileNameOpt )
+      setupDSLEvaluatorNode[ReqBody,RspBody]( dataLocation )( configFileNameOpt )
     }
 
     class DieselEngine(
