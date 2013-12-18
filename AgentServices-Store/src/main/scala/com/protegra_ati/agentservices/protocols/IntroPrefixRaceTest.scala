@@ -266,9 +266,11 @@ object TestRace extends Serializable {
     val nodeKeys = EvalNodeMapper.keys.toList
     val nI2A = EvalNodeMapper( nodeKeys( 0 ) )
     val nA2I = if ( singleNode ) nI2A else EvalNodeMapper( nodeKeys( 1 ) )
+    val aURI = new URI( "a://b" )
+    val bURI = new URI( "b://a" )
 
-    val I2A = acT.AgentCnxn( new URI( "a" ), "", new URI( "b" ) )
-    val A2I = acT.AgentCnxn( new URI( "b" ), "", new URI( "a" ) )
+    val I2A = acT.AgentCnxn( aURI, "", bURI )
+    val A2I = acT.AgentCnxn( bURI, "", aURI )
 
     def runTest(
       request : Any,
@@ -316,10 +318,12 @@ object TestRace extends Serializable {
     val nodeKeys = EvalNodeMapper.keys.toList
     val nI2A = EvalNodeMapper( nodeKeys( 0 ) )
     val nA2I = if ( singleNode ) nI2A else EvalNodeMapper( nodeKeys( 1 ) )
+    val aURI = new URI( "a://b" )
+    val bURI = new URI( "b://a" )
 
     val CnxnLabel = UUID.randomUUID.toString.split( "-" )( 0 )
-    val I2A = acT.AgentCnxn( new URI( "a" ), CnxnLabel, new URI( "b" ) )
-    val A2I = acT.AgentCnxn( new URI( "b" ), CnxnLabel, new URI( "a" ) )
+    val I2A = acT.AgentCnxn( aURI, CnxnLabel, bURI )
+    val A2I = acT.AgentCnxn( bURI, CnxnLabel, aURI )
 
     def runTest(
       request : Any,

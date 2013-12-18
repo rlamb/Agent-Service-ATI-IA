@@ -2252,6 +2252,18 @@ with AgentCnxnTypeScope {
   }
 }
 
+trait AgentChannelTypes[Namespace,Var,Tag,Value] {
+  type AgentChannel[ReqBody <: AgentKVDBMongoNodeScope[Namespace,Var,Tag,Value]#PersistedKVDBNodeRequest, RspBody <: AgentKVDBMongoNodeScope[Namespace,Var,Tag,Value]#PersistedKVDBNodeResponse] =
+    AgentKVDBMongoNodeScope[Namespace,Var,Tag,Value]#AgentPersistenceScope#AgentKVDBNode[ReqBody, RspBody]
+  type InnerAgentChannel[ReqBody <: AgentKVDBMongoNodeScope[Namespace,Var,Tag,Value]#PersistedKVDBNodeRequest, RspBody <: AgentKVDBMongoNodeScope[Namespace,Var,Tag,Value]#PersistedKVDBNodeResponse] = 
+    AgentChannel[ReqBody, RspBody]#HashAgentKVDBNode[ReqBody,RspBody]
+
+  trait CnxnMapper[ReqBody <: AgentKVDBMongoNodeScope[Namespace,Var,Tag,Value]#PersistedKVDBNodeRequest, RspBody <: AgentKVDBMongoNodeScope[Namespace,Var,Tag,Value]#PersistedKVDBNodeResponse] extends MapProxy[AgentKVDBMongoNodeScope[Namespace,Var,Tag,Value]#ACTypes#AgentCnxn,InnerAgentChannel[ReqBody, RspBody]] {
+    @transient
+    override val self = new HashMap[AgentKVDBMongoNodeScope[Namespace,Var,Tag,Value]#ACTypes#AgentCnxn,InnerAgentChannel[ReqBody, RspBody]]()
+  }
+}
+
 object DataClasses {
   case class PutVal(
     values : List[Int],

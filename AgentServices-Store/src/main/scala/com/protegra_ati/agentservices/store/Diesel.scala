@@ -470,6 +470,25 @@ package diesel {
               None,
               configFileNameOpt
             ) {
+              override def getPartition(
+                cnxn : acT.AgentCnxn
+              ) : HashAgentKVDBNode[ReqBody,RspBody] = {
+                BasicLogService.tweet(
+                  (
+                    ">>>>>>**************++++**************<<<<<<"
+                    + "\nin new getPartition"
+                    + "\n>>>>>>**************++++**************<<<<<<"
+                  )
+                )
+                DSLChannelTypes.DSLCnxnMap.getPartition(
+                  cnxn,
+                  {
+                    cnxn => makeSpace(
+                      cnxn
+                    ).asInstanceOf[DSLChannelTypes.InnerAgentChannel[DieselEngineScope.PersistedKVDBNodeRequest,DieselEngineScope.PersistedKVDBNodeResponse]]
+                  }
+                ).asInstanceOf[HashAgentKVDBNode[ReqBody,RspBody]]
+              }
               override def mkInnerCache[ReqBody <: PersistedKVDBNodeRequest, RspBody <: PersistedKVDBNodeResponse]( 
                 here : URI,
                 configFileName : Option[String]
@@ -795,6 +814,25 @@ package diesel {
               None,
               configFileNameOpt
             ) {
+              override def getPartition(
+                cnxn : acT.AgentCnxn
+              ) : HashAgentKVDBNode[ReqBody,RspBody] = {
+                BasicLogService.tweet(
+                  (
+                    ">>>>>>**************++++**************<<<<<<"
+                    + "\nin new getPartition"
+                    + "\n>>>>>>**************++++**************<<<<<<"
+                  )
+                )
+                DSLChannelTypes.DSLCnxnMap.getPartition(
+                  cnxn,
+                  {
+                    cnxn => makeSpace(
+                      cnxn
+                    ).asInstanceOf[DSLChannelTypes.InnerAgentChannel[DieselEngineScope.PersistedKVDBNodeRequest,DieselEngineScope.PersistedKVDBNodeResponse]]
+                  }
+                ).asInstanceOf[HashAgentKVDBNode[ReqBody,RspBody]]
+              }
               override def mkInnerCache[ReqBody <: PersistedKVDBNodeRequest, RspBody <: PersistedKVDBNodeResponse]( 
                 here : URI,
                 configFileName : Option[String]
@@ -1142,6 +1180,25 @@ package diesel {
               None,
               configFileNameOpt
             ) {
+              override def getPartition(
+                cnxn : acT.AgentCnxn
+              ) : HashAgentKVDBNode[ReqBody,RspBody] = {
+                BasicLogService.tweet(
+                  (
+                    ">>>>>>**************++++**************<<<<<<"
+                    + "\nin new getPartition"
+                    + "\n>>>>>>**************++++**************<<<<<<"
+                  )
+                )
+                DSLChannelTypes.DSLCnxnMap.getPartition(
+                  cnxn,
+                  {
+                    cnxn => makeSpace(
+                      cnxn
+                    ).asInstanceOf[DSLChannelTypes.InnerAgentChannel[DieselEngineScope.PersistedKVDBNodeRequest,DieselEngineScope.PersistedKVDBNodeResponse]]
+                  }
+                ).asInstanceOf[HashAgentKVDBNode[ReqBody,RspBody]]
+              }
               override def mkInnerCache[ReqBody <: PersistedKVDBNodeRequest, RspBody <: PersistedKVDBNodeResponse]( 
                 here : URI,
                 configFileName : Option[String]
@@ -1456,6 +1513,63 @@ package diesel {
 
   }
 
+  object DSLChannelTypes
+    extends AgentChannelTypes[String,String,String,ConcreteHL.HLExpr]
+    with Serializable {
+      @transient
+      lazy val cnxnPartitionLock = new scala.concurrent.Lock()
+      object DSLCnxnMap
+        extends CnxnMapper[DieselEngineScope.PersistedKVDBNodeRequest,DieselEngineScope.PersistedKVDBNodeResponse]
+        with Serializable {
+          def getPartition(
+            cnxn : DieselEngineScope.acT.AgentCnxn,
+            makeSpace : DieselEngineScope.acT.AgentCnxn => InnerAgentChannel[DieselEngineScope.PersistedKVDBNodeRequest,DieselEngineScope.PersistedKVDBNodeResponse]
+          ) : InnerAgentChannel[DieselEngineScope.PersistedKVDBNodeRequest,DieselEngineScope.PersistedKVDBNodeResponse] = {
+            BasicLogService.tweet(
+              (
+                ">>>>>>**************++++**************<<<<<<"
+                + "\nin DSLCnxnMap getPartition"
+                + "\n>>>>>>**************++++**************<<<<<<"
+              )
+            )
+            cnxnPartitionLock.acquire()
+            
+            val cnxnSpace : InnerAgentChannel[DieselEngineScope.PersistedKVDBNodeRequest,DieselEngineScope.PersistedKVDBNodeResponse] =
+              get( cnxn ) match {
+                case Some( cs ) => {
+                  BasicLogService.tweet(
+                    (
+                      ">>>>>>**************++++**************<<<<<<"
+                      + "\nin DSLCnxnMap getPartition"
+                      + "\nfound matching space for cnxn: " + cnxn
+                      + "\n>>>>>>**************++++**************<<<<<<"
+                    )
+                  )
+                  cs
+                }
+                case None => {
+                  BasicLogService.tweet(
+                    (
+                      ">>>>>>**************++++**************<<<<<<"
+                      + "\nin DSLCnxnMap getPartition"
+                      + "\ndid not find matching space for cnxn: " + cnxn
+                      + "\n>>>>>>**************++++**************<<<<<<"
+                    )
+                  )
+                  val nCnxnSpace : InnerAgentChannel[DieselEngineScope.PersistedKVDBNodeRequest,DieselEngineScope.PersistedKVDBNodeResponse] =
+                    makeSpace( cnxn )
+                  
+                  DSLChannelTypes.DSLCnxnMap += ( cnxn -> nCnxnSpace )
+                  nCnxnSpace
+                }
+              }
+            
+            cnxnPartitionLock.release()
+            cnxnSpace
+          }
+        }
+    }
+  
   trait DSLEvaluatorConfiguration {
     self : EvalConfig =>
       def dslEvaluatorHostName() : String = {
