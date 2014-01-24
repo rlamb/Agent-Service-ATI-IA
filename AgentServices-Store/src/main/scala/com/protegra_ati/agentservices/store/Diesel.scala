@@ -70,7 +70,7 @@ package diesel {
   import scala.xml._
   import scala.xml.XML._
   import scala.collection.mutable.Buffer
-  import scala.collection.mutable.ListBuffer
+  import scala.collection.mutable.ListBuffer  
 
   object DieselEngineScope
          extends AgentKVDBMongoNodeScope[String,String,String,ConcreteHL.HLExpr]
@@ -295,6 +295,15 @@ package diesel {
                 key : mTT.GetRequest, // must have the pattern to determine bindings
                 value : DBObject
               ) : emT.PlaceInstance = {
+                BasicLogService.tweet(
+	          (
+	            "Diesel AgentKVDB : "
+	            + "\nmethod : asResource "
+	            + "\nthis : " + this
+	            + "\nkey : " + key
+                    + "\nvalue : " + value
+	          )
+	        )
                 val ltns =
                   labelToNS.getOrElse(
                     throw new Exception( "must have labelToNS to convert mongo object" )
@@ -313,22 +322,59 @@ package diesel {
                     matchMap( key, k ) match {
                       case Some( soln ) => {
                         if ( compareNameSpace( ns, kvNameSpace ) ) {
-                          emT.PlaceInstance(
-                            k,
-                            Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
-                              mTT.Ground(
-                                asCacheValue(
-                                  new CnxnCtxtBranch[String,String,String](
-                                    "string",
-                                    v :: Nil
-                                  )
-                                )
-                              )
-                            ),
-                            // BUGBUG -- lgm : why can't the compiler determine
-                            // that this cast is not necessary?
-                            theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                          val cacheValueRslt =
+                              asCacheValue( new CnxnCtxtBranch[String,String,String]( "string", v :: Nil ) )
+                          BasicLogService.tweet(
+                            (
+                              " ****************************************** "
+                              + "\nBaseAgentKVDB : "
+                              + "\n method : mkCache"
+                              + "\n ------------------------------------------ "
+		              + "\n computed cacheValue: " + cacheValueRslt
+		              + "\n ****************************************** "
+                            )
                           )
+                          val groundWrapper =
+                            mTT.Ground( cacheValueRslt )
+                          val boundHMWrapper =
+                            mTT.RBoundHM( Some( groundWrapper ), Some( soln ) )
+                          val boundWrapper =
+                            mTT.asRBoundAList( boundHMWrapper )
+
+                          BasicLogService.tweet(
+                            (
+                              " ****************************************** "
+                              + "\nDiesel AgentKVDB : "
+                              + "\n method : mkCache"
+		              + "\n ------------------------------------------ "
+                              + "\n boundWrapper: " + boundWrapper
+		              + " ****************************** "
+                            )
+                          )
+
+                          val finalRslt =
+                            emT.PlaceInstance(
+                              k,
+                              Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
+                                boundWrapper
+                              ),
+                              // BUGBUG -- lgm : why can't the compiler determine
+                              // that this cast is not necessary?
+                              theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                            )
+                          
+                          BasicLogService.tweet(
+                            (
+                              " ****************************************** "
+                              + "\nDiesel AgentKVDB : "
+                              + "\n method : mkCache"
+		              + "\n ------------------------------------------ "
+                              + "\n placeInstance: " + finalRslt
+		              + " ****************************** "
+                            )
+                          )
+                            
+                          finalRslt
                         }
                         else {
                           if ( compareNameSpace( ns, kvKNameSpace ) ) {
@@ -355,8 +401,8 @@ package diesel {
                         }
                       }
                       case None => {
-                        BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
-                        throw new Exception( "matchMap failure " + key + " " + k )
+                        //BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
+                        throw new UnificationQueryFilter( key, k, value )
                       }
                     }                                           
                   }
@@ -650,22 +696,59 @@ package diesel {
                           matchMap( key, k ) match {
                             case Some( soln ) => {
                               if ( compareNameSpace( ns, kvNameSpace ) ) {
-                                emT.PlaceInstance(
-                                  k,
-                                  Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
-                                    mTT.Ground(
-                                      asCacheValue(
-                                        new CnxnCtxtBranch[String,String,String](
-                                          "string",
-                                          v :: Nil
-                                        )
-                                      )
-                                    )
-                                  ),
-                                  // BUGBUG -- lgm : why can't the compiler determine
-                                  // that this cast is not necessary?
-                                  theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                                val cacheValueRslt =
+                                  asCacheValue( new CnxnCtxtBranch[String,String,String]( "string", v :: Nil ) )
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nDiesel AgentKVDB : "
+                                    + "\n method : mkCache"
+                                    + "\n ------------------------------------------ "
+		                    + "\n computed cacheValue: " + cacheValueRslt
+		                    + "\n ****************************************** "
+                                  )
                                 )
+                                val groundWrapper =
+                                  mTT.Ground( cacheValueRslt )
+                                val boundHMWrapper =
+                                  mTT.RBoundHM( Some( groundWrapper ), Some( soln ) )
+                                val boundWrapper =
+                                  mTT.asRBoundAList( boundHMWrapper )
+                                
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nDiesel AgentKVDB : "
+                                    + "\n method : mkCache"
+		                    + "\n ------------------------------------------ "
+                                    + "\n boundWrapper: " + boundWrapper
+		                    + " ****************************** "
+                                  )
+                                )
+                                
+                                val finalRslt =
+                                  emT.PlaceInstance(
+                                    k,
+                                    Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
+                                      boundWrapper
+                                    ),
+                                    // BUGBUG -- lgm : why can't the compiler determine
+                                    // that this cast is not necessary?
+                                    theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                                  )
+                                
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nBFactory AgentKVDB : "
+                                    + "\n method : mkCache"
+		                    + "\n ------------------------------------------ "
+                                    + "\n placeInstance: " + finalRslt
+		                    + " ****************************** "
+                                  )
+                                )
+                                
+                                finalRslt
                               }
                               else {
                                 if ( compareNameSpace( ns, kvKNameSpace ) ) {
@@ -692,8 +775,8 @@ package diesel {
                               }
                             }
                             case None => {
-                              BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
-                              throw new Exception( "matchMap failure " + key + " " + k )
+                              //BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
+                              throw new UnificationQueryFilter( key, k, value )
                             }
                           }                                             
                         }
@@ -994,22 +1077,59 @@ package diesel {
                           matchMap( key, k ) match {
                             case Some( soln ) => {
                               if ( compareNameSpace( ns, kvNameSpace ) ) {
-                                emT.PlaceInstance(
-                                  k,
-                                  Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
-                                    mTT.Ground(
-                                      asCacheValue(
-                                        new CnxnCtxtBranch[String,String,String](
-                                          "string",
-                                          v :: Nil
-                                        )
-                                      )
-                                    )
-                                  ),
-                                  // BUGBUG -- lgm : why can't the compiler determine
-                                  // that this cast is not necessary?
-                                  theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                                val cacheValueRslt =
+                                  asCacheValue( new CnxnCtxtBranch[String,String,String]( "string", v :: Nil ) )
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nDiesel AgentKVDB : "
+                                    + "\n method : mkCache"
+                                    + "\n ------------------------------------------ "
+		                    + "\n computed cacheValue: " + cacheValueRslt
+		                    + "\n ****************************************** "
+                                  )
                                 )
+                                val groundWrapper =
+                                  mTT.Ground( cacheValueRslt )
+                                val boundHMWrapper =
+                                  mTT.RBoundHM( Some( groundWrapper ), Some( soln ) )
+                                val boundWrapper =
+                                  mTT.asRBoundAList( boundHMWrapper )
+                                
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nDiesel AgentKVDB : "
+                                    + "\n method : mkCache"
+		                    + "\n ------------------------------------------ "
+                                    + "\n boundWrapper: " + boundWrapper
+		                    + " ****************************** "
+                                  )
+                                )
+                                
+                                val finalRslt =
+                                  emT.PlaceInstance(
+                                    k,
+                                    Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
+                                      boundWrapper
+                                    ),
+                                    // BUGBUG -- lgm : why can't the compiler determine
+                                    // that this cast is not necessary?
+                                    theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                                  )
+                                
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nDiesel AgentKVDB : "
+                                    + "\n method : mkCache"
+		                    + "\n ------------------------------------------ "
+                                    + "\n placeInstance: " + finalRslt
+		                    + " ****************************** "
+                                  )
+                                )
+                                
+                                finalRslt
                               }
                               else {
                                 if ( compareNameSpace( ns, kvKNameSpace ) ) {
@@ -1036,7 +1156,7 @@ package diesel {
                               }
                             }
                             case None => {
-                              BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
+                              //BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
                               throw new UnificationQueryFilter( key, k, value )
                             }
                           }                                             
@@ -1356,22 +1476,59 @@ package diesel {
                           matchMap( key, k ) match {
                             case Some( soln ) => {
                               if ( compareNameSpace( ns, kvNameSpace ) ) {
-                                emT.PlaceInstance(
-                                  k,
-                                  Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
-                                    mTT.Ground(
-                                      asCacheValue(
-                                        new CnxnCtxtBranch[String,String,String](
-                                          "string",
-                                          v :: Nil
-                                        )
-                                      )
-                                    )
-                                  ),
-                                  // BUGBUG -- lgm : why can't the compiler determine
-                                  // that this cast is not necessary?
-                                  theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                                val cacheValueRslt =
+                                  asCacheValue( new CnxnCtxtBranch[String,String,String]( "string", v :: Nil ) )
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nDiesel AgentKVDB : "
+                                    + "\n method : mkCache"
+                                    + "\n ------------------------------------------ "
+		                    + "\n computed cacheValue: " + cacheValueRslt
+		                    + "\n ****************************************** "
+                                  )
                                 )
+                                val groundWrapper =
+                                  mTT.Ground( cacheValueRslt )
+                                val boundHMWrapper =
+                                  mTT.RBoundHM( Some( groundWrapper ), Some( soln ) )
+                                val boundWrapper =
+                                  mTT.asRBoundAList( boundHMWrapper )
+                                
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nDiesel AgentKVDB : "
+                                    + "\n method : mkCache"
+		                    + "\n ------------------------------------------ "
+                                    + "\n boundWrapper: " + boundWrapper
+		                    + " ****************************** "
+                                  )
+                                )
+                                
+                                val finalRslt =
+                                  emT.PlaceInstance(
+                                    k,
+                                    Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
+                                      boundWrapper
+                                    ),
+                                    // BUGBUG -- lgm : why can't the compiler determine
+                                    // that this cast is not necessary?
+                                    theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                                  )
+                                
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nDiesel AgentKVDB : "
+                                    + "\n method : mkCache"
+		                    + "\n ------------------------------------------ "
+                                    + "\n placeInstance: " + finalRslt
+		                    + " ****************************** "
+                                  )
+                                )
+                                
+                                finalRslt
                               }
                               else {
                                 if ( compareNameSpace( ns, kvKNameSpace ) ) {
@@ -1398,8 +1555,8 @@ package diesel {
                               }
                             }
                             case None => {
-                              BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
-                              throw new Exception( "matchMap failure " + key + " " + k )
+                              //BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
+                              throw new UnificationQueryFilter( key, k, value )
                             }
                           }                                             
                         }
@@ -1569,7 +1726,7 @@ package diesel {
           }
         }
     }
-  
+
   trait DSLEvaluatorConfiguration {
     self : EvalConfig =>
       def dslEvaluatorHostName() : String = {
@@ -1739,10 +1896,9 @@ package diesel {
     }    
 
     def dslEvaluatorAgent[ReqBody <: PersistedKVDBNodeRequest, RspBody <: PersistedKVDBNodeResponse](
-      dataLocation : String = dslEvaluatorHostData,
       configFileNameOpt : Option[String] = Some( "eval.conf" )
     ): EvalChannel[ReqBody,RspBody] = {
-      setupDSLEvaluatorNode[ReqBody,RspBody]( dataLocation )( configFileNameOpt )
+      setupDSLEvaluatorNode[ReqBody,RspBody]()( configFileNameOpt )
     }
 
     class DieselEngine(
@@ -1750,6 +1906,8 @@ package diesel {
       val cnxnGlobal : acT.AgentCnxn = new acT.AgentCnxn("Global".toURI, "", "Global".toURI),
       val version : String = "0.0.1"
     ) extends DieselManufactureConfiguration with Serializable {        
+      import com.protegra_ati.agentservices.store.util._
+
       override def configurationDefaults : ConfigurationDefaults = {
         DieselConfigurationDefaults.asInstanceOf[ConfigurationDefaults]
       }      
@@ -2240,7 +2398,9 @@ package diesel {
               }
             }
             case ConcreteHL.ScoreExpr( filter, cnxns, staff ) => {
-              
+              // TODO(mike): handle the staff logic
+              // if staff is a list of connections, use it instead of cnxns
+              // if staff is a list of filters, use them instead of filter
               BasicLogService.tweet(
                 "method: evaluateExpression"
                 + "\nin ConcreteHL.ScoreExpr case "
@@ -2568,6 +2728,18 @@ package diesel {
                 handler( Some( mTT.Ground( ConcreteHL.Bottom ) ), Some(filter), Some(agntCnxn) )
               }
             }
+            case runProcRq@ConcreteHL.RunProcessRequest( cmd, wkDir, env ) => {
+              try {
+                val runProcRsp = ProcessRunner.run( runProcRq )
+                handler( Some( mTT.Ground( runProcRsp ) ), None, None )
+              }
+              catch {
+                case e : Throwable => {
+                  val runProcRsp = ConcreteHL.RunProcessResponse( -1, Nil, Nil )
+                  handler( Some( mTT.Ground( runProcRsp ) ), None, None )
+                }
+              }
+            }
           }
         }
       }
@@ -2891,14 +3063,45 @@ package diesel {
                                 erspl,
                                 DSLCommLink.mTT.Ground(
                                   optRsrc match {
-                                    case None => {                                
+                                    case None => {
+                                      BasicLogService.tweet(
+                                        ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                        + "\nDiesel.scala:2500 forward(" + optRsrc + ", " + optFilter + ", " + optCnxn + ")"
+                                        + "\n------------------------------------------------------------------"
+                                        + "\nNone branch"
+                                        + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                      )
                                       ConcreteHL.Bottom
                                     }
                                     case Some( mTT.Ground( v ) ) => {
-                                      ConcreteHL.PostedExpr((v, optFilter.get, optCnxn.get))
+                                      BasicLogService.tweet(
+                                        ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                        + "\nDiesel.scala:2500 forward(" + optRsrc + ", " + optFilter + ", " + optCnxn + ")"
+                                        + "\n------------------------------------------------------------------"
+                                        + "\nGround branch"
+                                        + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                      )
+                                      ConcreteHL.PostedExpr((v, optFilter.get, optCnxn.get, mTT.RBoundAList(None,None)))
                                     }
-                                    case Some( mTT.RBoundHM( Some( mTT.Ground( v ) ), _ ) ) => {
-                                      ConcreteHL.PostedExpr((v, optFilter.get, optCnxn.get))
+                                    case Some( mTT.RBoundHM( Some( mTT.Ground( v ) ), bindings ) ) => {
+                                      BasicLogService.tweet(
+                                        ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                        + "\nDiesel.scala:2500 forward(" + optRsrc + ", " + optFilter + ", " + optCnxn + ")"
+                                        + "\n------------------------------------------------------------------"
+                                        + "\nRBoundHM branch"
+                                        + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                      )
+                                      ConcreteHL.PostedExpr((v, optFilter.get, optCnxn.get, mTT.RBoundAList(None, bindings.map(_.toList))))
+                                    }
+                                    case Some( mTT.RBoundAList( Some( mTT.Ground( v ) ), bindings ) ) => {
+                                      BasicLogService.tweet(
+                                        ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                        + "\nDiesel.scala:2500 forward(" + optRsrc + ", " + optFilter + ", " + optCnxn + ")"
+                                        + "\n------------------------------------------------------------------"
+                                        + "\nRBoundAList branch"
+                                        + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                      )
+                                      ConcreteHL.PostedExpr((v, optFilter.get, optCnxn.get, mTT.RBoundAList(None, bindings)))
                                     }
                                   }
                                 )
@@ -2947,13 +3150,44 @@ package diesel {
                                 DSLCommLink.mTT.Ground(
                                   optRsrc match {
                                     case None => {                                
+                                      BasicLogService.tweet(
+                                        ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                        + "\nDiesel.scala:2555 forward(" + optRsrc + ", " + optFilter + ", " + optCnxn + ")"
+                                        + "\n------------------------------------------------------------------"
+                                        + "\nNone branch"
+                                        + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                      )
                                       ConcreteHL.Bottom
                                     }
                                     case Some( mTT.Ground( v ) ) => {
-                                      ConcreteHL.PostedExpr((v, optFilter.get, optCnxn.get))
+                                      BasicLogService.tweet(
+                                        ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                        + "\nDiesel.scala:2555 forward(" + optRsrc + ", " + optFilter + ", " + optCnxn + ")"
+                                        + "\n------------------------------------------------------------------"
+                                        + "\nGround branch"
+                                        + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                      )
+                                      ConcreteHL.PostedExpr((v, optFilter.get, optCnxn.get, mTT.RBoundAList(None,None)))
                                     }
-                                    case Some( mTT.RBoundHM( Some( mTT.Ground( v ) ), _ ) ) => {
-                                      ConcreteHL.PostedExpr((v, optFilter.get, optCnxn.get))
+                                    case Some( mTT.RBoundHM( Some( mTT.Ground( v ) ), bindings ) ) => {
+                                      BasicLogService.tweet(
+                                        ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                        + "\nDiesel.scala:2555 forward(" + optRsrc + ", " + optFilter + ", " + optCnxn + ")"
+                                        + "\n------------------------------------------------------------------"
+                                        + "\nRBoundHM branch"
+                                        + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                      )
+                                      ConcreteHL.PostedExpr((v, optFilter.get, optCnxn.get, mTT.RBoundAList(None, bindings.map(_.toList))))
+                                    }
+                                    case Some( mTT.RBoundAList( Some( mTT.Ground( v ) ), bindings ) ) => {
+                                      BasicLogService.tweet(
+                                        ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                        + "\nDiesel.scala:2555 forward(" + optRsrc + ", " + optFilter + ", " + optCnxn + ")"
+                                        + "\n------------------------------------------------------------------"
+                                        + "\nRBoundAList branch"
+                                        + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                      )
+                                      ConcreteHL.PostedExpr((v, optFilter.get, optCnxn.get, mTT.RBoundAList(None, bindings)))
                                     }
                                   }
                                 )
@@ -3006,13 +3240,44 @@ package diesel {
                                         DSLCommLink.mTT.Ground(
                                           optRsrc match {
                                             case None => {                                
+                                              BasicLogService.tweet(
+                                                ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                                + "\nDiesel.scala:2614 forward(" + optRsrc + ", " + optFilter + ", " + optCnxn + ")"
+                                                + "\n------------------------------------------------------------------"
+                                                + "\nNone branch"
+                                                + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                              )
                                               ConcreteHL.Bottom
                                             }
                                             case Some( mTT.Ground( v ) ) => {
-                                              ConcreteHL.PostedExpr((v, optFilter.get, optCnxn.get))
+                                              BasicLogService.tweet(
+                                                ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                                + "\nDiesel.scala:2614 forward(" + optRsrc + ", " + optFilter + ", " + optCnxn + ")"
+                                                + "\n------------------------------------------------------------------"
+                                                + "\nGround branch"
+                                                + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                              )
+                                              ConcreteHL.PostedExpr((v, optFilter.get, optCnxn.get, mTT.RBoundAList(None,None)))
                                             }
-                                            case Some( mTT.RBoundHM( Some( mTT.Ground( v ) ), _ ) ) => {
-                                              ConcreteHL.PostedExpr((v, optFilter.get, optCnxn.get))
+                                            case Some( mTT.RBoundHM( Some( mTT.Ground( v ) ), bindings ) ) => {
+                                              BasicLogService.tweet(
+                                                ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                                + "\nDiesel.scala:2614 forward(" + optRsrc + ", " + optFilter + ", " + optCnxn + ")"
+                                                + "\n------------------------------------------------------------------"
+                                                + "\nRBoundHM branch"
+                                                + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                              )
+                                              ConcreteHL.PostedExpr((v, optFilter.get, optCnxn.get, mTT.RBoundAList(None, bindings.map(_.toList))))
+                                            }
+                                            case Some( mTT.RBoundAList( Some( mTT.Ground( v ) ), bindings ) ) => {
+                                              BasicLogService.tweet(
+                                                ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                                + "\nDiesel.scala:2614 forward(" + optRsrc + ", " + optFilter + ", " + optCnxn + ")"
+                                                + "\n------------------------------------------------------------------"
+                                                + "\nRBoundHM branch"
+                                                + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                                              )
+                                              ConcreteHL.PostedExpr((v, optFilter.get, optCnxn.get, mTT.RBoundAList(None, bindings)))
                                             }
                                           }
                                         )

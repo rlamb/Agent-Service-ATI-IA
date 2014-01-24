@@ -9,7 +9,6 @@
 package com.protegra_ati.agentservices.store
 
 import com.protegra_ati.agentservices.store.extensions.URIExtensions._
-//import com.protegra_ati.agentservices.store.extensions.URMExtensions._
 import com.protegra_ati.agentservices.store.extensions.MonikerExtensions._
 
 import com.biosimilarity.lift.model.ApplicationDefaults
@@ -23,7 +22,6 @@ import net.liftweb.amqp._
 
 import scala.util.continuations._ 
 import scala.concurrent.{Channel => Chan, _}
-//import scala.concurrent.cpsops._
 import scala.xml._
 import scala.collection.mutable.Map
 import scala.collection.mutable.MapProxy
@@ -64,7 +62,6 @@ import java.io.ByteArrayOutputStream
 
 trait AgentKVDBMongoNodeScope[Namespace,Var,Tag,Value] 
 extends PersistedMonadicKVDBMongoNodeScope[Namespace,Var,Tag,Value]
-//with CnxnDTSMsgScope[Namespace,Var,Tag,Value]
 with AgentCnxnTypeScope {
   trait AgentPersistenceScope extends PersistenceScope {    
     class BaseAgentKVDB[ReqBody <: PersistedKVDBNodeRequest, RspBody <: PersistedKVDBNodeResponse, +KVDBNode[Rq <: ReqBody, Rs <: RspBody] <: BaseAgentKVDBNode[Rq,Rs,KVDBNode]](
@@ -221,10 +218,7 @@ with AgentCnxnTypeScope {
                               )
                             )
                             BasicLogService.tweet( "Reader departing spaceLock AgentKVDBNode Version 1 on " + this + " for mget on " + path + "." )
-                            //spaceLock.depart( Some( rk ) )
                             spaceLock.depart( path, rk )
-                            //BasicLogService.tweet( "spaceLock reading room: " + spaceLock.readingRoom )
-                            //BasicLogService.tweet( "spaceLock writing room: " + spaceLock.writingRoom )
 
                             rk(oV)
                           }
@@ -280,10 +274,7 @@ with AgentCnxnTypeScope {
                                       )
                                     )
                                     BasicLogService.tweet( "Reader departing spaceLock AgentKVDBNode Version 2 on " + this + " for mget on " + path + "." )
-                                    //spaceLock.depart( Some( rk ) )
                                     spaceLock.depart( path, rk )
-                                    //BasicLogService.tweet( "spaceLock reading room: " + spaceLock.readingRoom )
-                                    //BasicLogService.tweet( "spaceLock writing room: " + spaceLock.writingRoom )
 
                                     rk(oV)
                                   }
@@ -299,7 +290,6 @@ with AgentCnxnTypeScope {
                                       )
                                     )                                    
                                     
-                                    //val rslts = executeWithResults(xmlCollName, qry)
 				    val tPath = Left[mTT.GetRequest,mTT.GetRequest]( path )
 				    val rslts = executeWithResults( pd, xmlCollName, tPath )
                                     
@@ -322,14 +312,8 @@ with AgentCnxnTypeScope {
 
                                         storeKQuery( xmlCollName, pd )( path, keep, rk )
 
-                                        // Then forward the request
-                                        //forward( ask, hops, path )
-
                                         BasicLogService.tweet( "Reader departing spaceLock AgentKVDBNode Version 3 on " + this + " for mget on " + path + "." )
-                                        //spaceLock.depart( Some( rk ) )
                                         spaceLock.depart( path, rk )
-                                        //BasicLogService.tweet( "spaceLock reading room: " + spaceLock.readingRoom )
-                                        //BasicLogService.tweet( "spaceLock writing room: " + spaceLock.writingRoom )
                                         
                                         rk(oV)
                                       }
@@ -339,13 +323,11 @@ with AgentCnxnTypeScope {
                                             "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
                                             + "mgetting " + path + ".\n"
                                             + "on " + this + " from db " /* + pd.db */ + "\n"
-                                            + "from coll " + xmlCollName + "\n"
+                                            + "from coll " + xmlCollName + "\n"                                            
                                             + "with query: ... " 
                                             + "\n had "
                                             + rslts.length
                                             + " matching resources."
-                                            + "\n-----------------------------------------------------------------"
-                                            + "\nstoring continuation query"
                                             + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
                                           )
                                         )
@@ -363,7 +345,23 @@ with AgentCnxnTypeScope {
                                           
                                           for ( rsltRsrcPair <- itergen[(DBObject,emT.PlaceInstance)](rslts) ) {
                                             val ( rslt, ersrc ) = rsltRsrcPair
-					    BasicLogService.tweet("retrieved " + rslt.toString)
+					    BasicLogService.tweet(
+                                              ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
+                                              + "\nBaseAgentKVDB : "
+                                              + "\nmethod : mget "
+                                              + "\nthis : " + this
+                                              + "\ncnxn : " + cnxn
+                                              + "\nchannels : " + channels
+                                              + "\nregistered : " + registered
+                                              + "\nconsume : " + consume
+                                              + "\nkeep : " + keep
+                                              + "\ncursor : " + cursor
+                                              + "\ncollName : " + collName
+                                              + "\npath : " + path
+                                              + "\n-----------------------------------------------------------------"
+                                              + "\nretrieved : " + rslt.toString
+                                              + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
+                                            )
                                             
                                              consume match {
                                                case policy : RetainInStore => {
@@ -379,7 +377,6 @@ with AgentCnxnTypeScope {
                                                }
                                             }
                                             
-                                            //val ersrc: emT.PlaceInstance = pd.asResource(path, rslt)
                                             ersrc.stuff match {
                                               case Left( r ) => rsrcRslts = r :: rsrcRslts
                                               case _ => {}
@@ -413,7 +410,6 @@ with AgentCnxnTypeScope {
                                             }
                                             case _ => {
                                               BasicLogService.tweet( "Reader departing spaceLock PMKVDBNode Version 10" + this + " for mget on " + path + "." )
-                                              //spaceLock.depart( Some( rk ) )
                                               spaceLock.depart( path, Some( rk ) )
                                               rk( rsrcCursor )
                                             }
@@ -431,7 +427,23 @@ with AgentCnxnTypeScope {
                                               )                                       
                                               for ( rsltRsrcPair <- itergen[(DBObject,emT.PlaceInstance)](rslts) ) {
                                                 val ( rslt, ersrc ) = rsltRsrcPair
-                                                BasicLogService.tweet("retrieved " + rslt.toString)
+                                                BasicLogService.tweet(
+                                                  ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
+                                                  + "\nBaseAgentKVDB : "
+                                                  + "\nmethod : mget "
+                                                  + "\nthis : " + this
+                                                  + "\ncnxn : " + cnxn
+                                                  + "\nchannels : " + channels
+                                                  + "\nregistered : " + registered
+                                                  + "\nconsume : " + consume
+                                                  + "\nkeep : " + keep
+                                                  + "\ncursor : " + cursor
+                                                  + "\ncollName : " + collName
+                                                  + "\npath : " + path
+                                                  + "\n-----------------------------------------------------------------"
+                                                  + "\nretrieved : " + rslt.toString                                     
+                                                  + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
+                                                )
                                             
                                                 consume match {
                                                   case policy : RetainInStore => {
@@ -452,8 +464,23 @@ with AgentCnxnTypeScope {
 
                                               for ( rsltRsrcPair <- itergen[(DBObject,emT.PlaceInstance)](rslts) ) {
 						val ( rslt, ersrc ) = rsltRsrcPair
-                                                //val ersrc = pd.asResource(path, rslt)
-                                                BasicLogService.tweet("returning " + ersrc)                                             
+                                                BasicLogService.tweet(
+                                                  ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
+                                                  + "\nBaseAgentKVDB : "
+                                                  + "\nmethod : mget "
+                                                  + "\nthis : " + this
+                                                  + "\ncnxn : " + cnxn
+                                                  + "\nchannels : " + channels
+                                                  + "\nregistered : " + registered
+                                                  + "\nconsume : " + consume
+                                                  + "\nkeep : " + keep
+                                                  + "\ncursor : " + cursor
+                                                  + "\ncollName : " + collName
+                                                  + "\npath : " + path
+                                                  + "\n-----------------------------------------------------------------"
+                                                  + "\nreturning " + ersrc
+                                                  + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
+                                                )
                                                 ersrc.stuff match {
                                                   case Left( r ) => rk( Some( r ) )
                                                   case _ => {}
@@ -462,11 +489,26 @@ with AgentCnxnTypeScope {
                                             }
                                             case _ => {
                                               BasicLogService.tweet( "Reader departing spaceLock PMKVDBNode Version 10" + this + " for mget on " + path + "." )
-                                              //spaceLock.depart( Some( rk ) )
                                               spaceLock.depart( path, Some( rk ) )
                                               for ( rsltRsrcPair <- itergen[(DBObject,emT.PlaceInstance)](rslts) ) {
 						val ( rslt, ersrc ) = rsltRsrcPair
-                                                BasicLogService.tweet("retrieved " + rslt.toString)
+                                                BasicLogService.tweet(
+                                                  ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
+                                                  + "\nBaseAgentKVDB : "
+                                                  + "\nmethod : mget "
+                                                  + "\nthis : " + this
+                                                  + "\ncnxn : " + cnxn
+                                                  + "\nchannels : " + channels
+                                                  + "\nregistered : " + registered
+                                                  + "\nconsume : " + consume
+                                                  + "\nkeep : " + keep
+                                                  + "\ncursor : " + cursor
+                                                  + "\ncollName : " + collName
+                                                  + "\npath : " + path
+                                                  + "\n-----------------------------------------------------------------"
+                                                  + "\nretrieved : " + rslt.toString
+                                                  + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
+                                                )
                                                 
                                                 consume match {
                                                   case policy : RetainInStore => {
@@ -482,8 +524,23 @@ with AgentCnxnTypeScope {
                                                   }
                                                 }
                                                 
-                                                //val ersrc = pd.asResource(path, rslt)
-                                                BasicLogService.tweet("returning " + ersrc)                                             
+                                                BasicLogService.tweet(
+                                                  ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
+                                                  + "\nBaseAgentKVDB : "
+                                                  + "\nmethod : mget "
+                                                  + "\nthis : " + this
+                                                  + "\ncnxn : " + cnxn
+                                                  + "\nchannels : " + channels
+                                                  + "\nregistered : " + registered
+                                                  + "\nconsume : " + consume
+                                                  + "\nkeep : " + keep
+                                                  + "\ncursor : " + cursor
+                                                  + "\ncollName : " + collName
+                                                  + "\npath : " + path
+                                                  + "\n-----------------------------------------------------------------"
+                                                  + "\nreturning " + ersrc
+                                                  + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
+                                                )
                                                 ersrc.stuff match {
                                                   case Left( r ) => rk( Some( r ) )
                                                   case _ => {}
@@ -502,8 +559,6 @@ with AgentCnxnTypeScope {
 
                                 BasicLogService.tweet( "Reader departing spaceLock AgentKVDBNode Version 5 on " + this + " for mget on " + path + "." )
                                 spaceLock.depart( path, rk )
-                                //BasicLogService.tweet( "spaceLock reading room: " + spaceLock.readingRoom )
-                                //BasicLogService.tweet( "spaceLock writing room: " + spaceLock.writingRoom )
 
                                 rk(oV)
                               }
@@ -546,10 +601,7 @@ with AgentCnxnTypeScope {
                             
                             
                             BasicLogService.tweet( "Reader departing spaceLock PMKVDBNode Version 7 " + this + " for mget on " + path + "." )
-                            //spaceLock.depart( Some( rk ) )
                             spaceLock.depart( path, Some( rk ) )
-                            //BasicLogService.tweet( "spaceLock reading room: " + spaceLock.readingRoom )
-                            //BasicLogService.tweet( "spaceLock writing room: " + spaceLock.writingRoom )
                             if ( !cursor ) {
                               rk( oV )
                             }
@@ -588,10 +640,7 @@ with AgentCnxnTypeScope {
                                 )
                                 
                                 BasicLogService.tweet( "Reader departing spaceLock PMKVDBNode Version 8 " + this + " for mget on " + path + "." )
-                                //spaceLock.depart( Some( rk ) )
                                 spaceLock.depart( path, Some( rk ) )
-                                //BasicLogService.tweet( "spaceLock reading room: " + spaceLock.readingRoom )
-                                //BasicLogService.tweet( "spaceLock writing room: " + spaceLock.writingRoom )
                                 
                                 if ( !cursor ) {
                                   rk( oV )
@@ -622,10 +671,7 @@ with AgentCnxnTypeScope {
                                     )
                                     
                                     BasicLogService.tweet( "Reader departing spaceLock PMKVDBNode Version 9 " + this + " for mget on " + path + "." )
-                                    //spaceLock.depart( Some( rk ) )
                                     spaceLock.depart( path, Some( rk ) )
-                                    //BasicLogService.tweet( "spaceLock reading room: " + spaceLock.readingRoom )
-                                    //BasicLogService.tweet( "spaceLock writing room: " + spaceLock.writingRoom )
                                     
                                     if ( !cursor ) {
                                       rk( oV )
@@ -646,7 +692,6 @@ with AgentCnxnTypeScope {
                                   case Some( qry ) => {
 				    val tPath = Left[mTT.GetRequest,mTT.GetRequest]( path )
 				    val ewrRslts = executeWithResults( pd, xmlCollName, tPath )
-                                    //executeWithResults( xmlCollName, qry ) match {
 				    ewrRslts match {
                                       case Nil => {
                                         BasicLogService.tweet( 
@@ -658,9 +703,6 @@ with AgentCnxnTypeScope {
                                             + ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
                                           )
                                         )
-                                        
-                                        //BasicLogService.tweet( "spaceLock reading room: " + spaceLock.readingRoom )
-                                        //BasicLogService.tweet( "spaceLock writing room: " + spaceLock.writingRoom )
                                         
                                         // Need to store continuation if
                                         // this is a subscribe
@@ -691,7 +733,6 @@ with AgentCnxnTypeScope {
                                           }
                                           case _ => {
                                             BasicLogService.tweet( "Reader departing spaceLock PMKVDBNode Version 10" + this + " for mget on " + path + "." )
-                                            //spaceLock.depart( Some( rk ) )
                                             spaceLock.depart( path, Some( rk ) )
                                             if ( !cursor ) {
                                               rk( oV )
@@ -748,11 +789,6 @@ with AgentCnxnTypeScope {
                                           
                                         }
                                         
-                                        //BasicLogService.tweet( "Reader departing spaceLock PMKVDBNode Version 11" + this + " for mget on " + path + "." )
-                                        //spaceLock.depart( Some( rk ) )
-                                        //spaceLock.depart( path, Some( rk ) )
-                                        //BasicLogService.tweet( "spaceLock reading room: " + spaceLock.readingRoom )
-                                        //BasicLogService.tweet( "spaceLock writing room: " + spaceLock.writingRoom )
                                         // Need to store continuation if
                                         // this is a subscribe
                                         consume match {
@@ -843,19 +879,13 @@ with AgentCnxnTypeScope {
     trait BaseAgentKVDBNodeFactoryT
       extends AMQPURIOps
       with ThreadPoolRunnersX
-      //with FJTaskRunnersX
     {
       // BUGBUG -- lgm : So far, establishing appropriate bounds has
       // been too hard
       type AgentCache[ReqBody <: PersistedKVDBNodeRequest, RspBody <: PersistedKVDBNodeResponse]
-      //type AgentNode[Rq <: ReqBody,Rs <: RspBody] <: BaseAgentKVDBNode[Rq,Rs,AgentNode]
-
       def mkCache[ReqBody <: PersistedKVDBNodeRequest, RspBody <: PersistedKVDBNodeResponse](
         here : URI, configFileName : Option[String]
       ) : AgentCache[ReqBody,RspBody]
-      // def ptToMany[Rq <: ReqBody, Rs <: RspBody]( here : URI, there : List[URI] ) : AgentNode[Rq,Rs]
-//       def ptToPt[Rq <: ReqBody, Rs <: RspBody]( here : URI, there : URI ) : AgentNode[Rq,Rs]      
-//       def loopBack[Rq <: ReqBody, Rs <: RspBody]( here : URI ) : AgentNode[Rq,Rs]
     }    
 
     implicit val defaultConfigFileNameOpt : Option[String] = None
@@ -888,9 +918,6 @@ with AgentCnxnTypeScope {
       ) extends BaseAgentKVDBNode[ReqBody,RspBody,HashAgentKVDBNode](
         cache, acquaintances, cnxn, Nil
       ) 
-
-      //override type AgentCache[ReqBody <: PersistedKVDBNodeRequest, RspBody <: PersistedKVDBNodeResponse] <: BaseAgentKVDB[ReqBody,RspBody,KVDBNode]
-      //override type AgentNode[Rq <: ReqBody, Rs <: RspBody] = KVDBNode[Rq,Rs]
 
       override def mkCache[ReqBody <: PersistedKVDBNodeRequest, RspBody <: PersistedKVDBNodeResponse]( 
         here : URI,
@@ -1015,13 +1042,6 @@ with AgentCnxnTypeScope {
                 ptn
               )
             )
-          //    BasicLogService.tweet(
-          //      (
-          //        ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-          //        + " embedding cnxn " + embeddedCnxn.toString
-          //        + ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-          //      )
-          //    )
           embeddedCnxn
         }
       }
@@ -1035,13 +1055,6 @@ with AgentCnxnTypeScope {
               pm <- persistenceManifest;
               if ( pm.isInstanceOf[MongoDBManifest] )         
             ) yield {
-              //            BasicLogService.tweet(
-              //              (
-              //                ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-              //                + " embedded cnxn " + ccl.toString
-              //                + ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-              //              )
-              //            )
               val xmldbPm = pm.asInstanceOf[MongoDBManifest]
               val xmlifier = xmldbPm.xmlIfier
               val prod =
@@ -1060,10 +1073,10 @@ with AgentCnxnTypeScope {
       /* --------------------------------------------------------------------
        *                     Aggregation management API
        * -------------------------------------------------------------------- */
-
+      
       @transient
       lazy val cnxnPartitionLock = new scala.concurrent.Lock()
-      
+
       def cnxnMatch(
         cnxn1 : acT.AgentCnxn,
         cnxn2 : acT.AgentCnxn
@@ -1148,7 +1161,7 @@ with AgentCnxnTypeScope {
         
         for( ( cnxnKey, part ) <- search( cnxnPartition.toList ) ) 
         yield { part }       
-      }
+      }      
       
       def getPartition(
         cnxn : acT.AgentCnxn
@@ -1170,7 +1183,6 @@ with AgentCnxnTypeScope {
                     )
                   )
                   val npmgj = makeSpace( cnxn )
-                  //spawn { npmgj.dispatchDMsgs() }
                   cnxnPartition += ( cnxn -> npmgj )
                   npmgj
                 }
@@ -1208,10 +1220,6 @@ with AgentCnxnTypeScope {
         BasicLogService.tweet(
           "Getting remote partition using " + cnxn
         )
-        //       val rvrsCnxn =         // C( localProvider, l, remoteRequester )
-        //      acT.AgentCnxn( cnxn.trgt, cnxn.label, cnxn.src )
-        
-        //       getLocalPartition( rvrsCnxn )
         // Since there is now a queue/partition we could only have
         // received this on the partition handling this queue; hence,
         // there is no further need for lookup
@@ -1276,9 +1284,6 @@ with AgentCnxnTypeScope {
             {
               ( acc, e ) => {
                 val same = there.equals( e )
-                // BasicLogService.tweet(
-//                ( "comparing " + e + " with " + there + " : " + same )
-//              )
                 acc || same
               }
             }
@@ -1407,7 +1412,6 @@ with AgentCnxnTypeScope {
                   ) {
                     oV match {
                       case None => {
-                        //BasicLogService.tweet( ">>>>> forwarding..." )
                         BasicLogService.tweet( 
                           (
                             "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
@@ -1869,38 +1873,35 @@ with AgentCnxnTypeScope {
         )
         
         for( pd <- pmgj.cache.persistenceManifest ) {
-//        spawn
-    {
-            reset{
-              for( pI <- pmgj.delete( path ) ) {
-                BasicLogService.tweet( "place deleted from cache: " + pI )
-              }
+          reset{
+            for( pI <- pmgj.delete( path ) ) {
+              BasicLogService.tweet( "place deleted from cache: " + pI )
             }
-            BasicLogService.tweet(
-              "deleting from db : " /* + pd.db */
-              + " key : " + path.toString
-              + " in coll : " + pd.storeUnitStr( cnxn ) 
-            )
-
-            path match {
-              case cclStr : CnxnCtxtLabel[Namespace,Var,String] => {
-                pmgj.cache.delete(pd.storeUnitStr( cnxn ), cclStr)(
-                  cache.nameSpaceToString,
-                  cache.varToString,
-                  cache.tagToString,
-                  cache.labelToNS.getOrElse(
-                    {
-                      BasicLogService.tweet( "unable to delete key from db : missing labelToNS" )
-                      throw new Exception( "missing labelToNS" )
-                    }
-                  )
-                )
-              }
-              case _ => {
-                BasicLogService.tweet( "warning: unable to delete key from db" )
-              }
-            }       
           }
+          BasicLogService.tweet(
+            "deleting from db : " /* + pd.db */
+            + " key : " + path.toString
+            + " in coll : " + pd.storeUnitStr( cnxn ) 
+          )
+          
+          path match {
+            case cclStr : CnxnCtxtLabel[Namespace,Var,String] => {
+              pmgj.cache.delete(pd.storeUnitStr( cnxn ), cclStr)(
+                cache.nameSpaceToString,
+                cache.varToString,
+                cache.tagToString,
+                cache.labelToNS.getOrElse(
+                  {
+                    BasicLogService.tweet( "unable to delete key from db : missing labelToNS" )
+                    throw new Exception( "missing labelToNS" )
+                  }
+                )
+              )
+            }
+            case _ => {
+              BasicLogService.tweet( "warning: unable to delete key from db" )
+            }
+          }       
         }
       }
       
@@ -2203,14 +2204,6 @@ with AgentCnxnTypeScope {
     }
     
     object BaseAgentKVDBNode {
-      // def apply [ReqBody <: PersistedKVDBNodeRequest, RspBody <: PersistedKVDBNodeResponse,KVDBNode[Rq <: ReqBody, Rs <: RspBody] <: BaseAgentKVDBNode[Rq,Rs,KVDBNode]] ( 
-//      cache : BaseAgentKVDB[ReqBody,RspBody,KVDBNode],
-//      acquaintances : List[Moniker],
-//      cnxn : Option[acT.AgentCnxn],
-//      cnxnPartition : List[( acT.AgentCnxn, KVDBNode[ReqBody,RspBody] )]
-//       ) : BaseAgentKVDBNode[ReqBody,RspBody,KVDBNode] = {
-//      new BaseAgentKVDBNode[ReqBody,RspBody,KVDBNode]( cache, acquaintances, cnxn, cnxnPartition )
-//       }
       def unapply [ReqBody <: PersistedKVDBNodeRequest, RspBody <: PersistedKVDBNodeResponse,KVDBNode[Rq <: ReqBody, Rs <: RspBody] <: BaseAgentKVDBNode[Rq,Rs,KVDBNode]] (
         pmkvdbnode : BaseAgentKVDBNode[ReqBody,RspBody,KVDBNode]
       ) : Option[( BaseAgentKVDB[ReqBody,RspBody,KVDBNode], List[Moniker], Option[acT.AgentCnxn], List[( acT.AgentCnxn,KVDBNode[ReqBody,RspBody] )] )] = {
@@ -2237,7 +2230,6 @@ with AgentCnxnTypeScope {
     trait AgentKVDBNodeFactoryT
       extends AMQPURIOps
       with ThreadPoolRunnersX
-      //with FJTaskRunnersX
     {
       def ptToMany[ReqBody <: PersistedKVDBNodeRequest, RspBody <: PersistedKVDBNodeResponse](
         here : URI, there : List[URI]
@@ -2514,6 +2506,15 @@ package mongo.usage {
                 key : mTT.GetRequest, // must have the pattern to determine bindings
                 value : DBObject
               ) : emT.PlaceInstance = {
+                BasicLogService.tweet(
+	          (
+	            "AgentKVDB : "
+	            + "\nmethod : asResource "
+	            + "\nthis : " + this
+	            + "\nkey : " + key
+                    + "\nvalue : " + value
+	          )
+	        )
                 val ltns =
                   labelToNS.getOrElse(
                     throw new Exception( "must have labelToNS to convert mongo object" )
@@ -2532,22 +2533,59 @@ package mongo.usage {
                     matchMap( key, k ) match {
                       case Some( soln ) => {
                         if ( compareNameSpace( ns, kvNameSpace ) ) {
-                          emT.PlaceInstance(
-                            k,
-                            Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
-                              mTT.Ground(
-                                asCacheValue(
-                                  new CnxnCtxtBranch[String,String,String](
-                                    "string",
-                                    v :: Nil
-                                  )
-                                )
-                              )
-                            ),
-                            // BUGBUG -- lgm : why can't the compiler determine
-                            // that this cast is not necessary?
-                            theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                          val cacheValueRslt =
+                              asCacheValue( new CnxnCtxtBranch[String,String,String]( "string", v :: Nil ) )
+                          BasicLogService.tweet(
+                            (
+                              " ****************************************** "
+                              + "\nBaseAgentKVDB : "
+                              + "\n method : mkCache"
+                              + "\n ------------------------------------------ "
+		              + "\n computed cacheValue: " + cacheValueRslt
+		              + "\n ****************************************** "
+                            )
                           )
+                          val groundWrapper =
+                            mTT.Ground( cacheValueRslt )
+                          val boundHMWrapper =
+                            mTT.RBoundHM( Some( groundWrapper ), Some( soln ) )
+                          val boundWrapper =
+                            mTT.asRBoundAList( boundHMWrapper )
+
+                          BasicLogService.tweet(
+                            (
+                              " ****************************************** "
+                              + "\nBaseAgentKVDB : "
+                              + "\n method : mkCache"
+		              + "\n ------------------------------------------ "
+                              + "\n boundWrapper: " + boundWrapper
+		              + " ****************************** "
+                            )
+                          )
+
+                          val finalRslt =
+                            emT.PlaceInstance(
+                              k,
+                              Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
+                                boundWrapper
+                              ),
+                              // BUGBUG -- lgm : why can't the compiler determine
+                              // that this cast is not necessary?
+                              theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                            )
+                          
+                          BasicLogService.tweet(
+                            (
+                              " ****************************************** "
+                              + "\nBaseAgentKVDB : "
+                              + "\n method : mkCache"
+		              + "\n ------------------------------------------ "
+                              + "\n placeInstance: " + finalRslt
+		              + " ****************************** "
+                            )
+                          )
+                            
+                          finalRslt
                         }
                         else {
                           if ( compareNameSpace( ns, kvKNameSpace ) ) {
@@ -2575,7 +2613,8 @@ package mongo.usage {
                       }
                       case None => {
                         BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
-                        throw new Exception( "matchMap failure " + key + " " + k )
+                        //throw new Exception( "matchMap failure " + key + " " + k )
+                        throw new UnificationQueryFilter( key, k, value )
                       }
                     }                                           
                   }
@@ -2850,22 +2889,59 @@ package mongo.usage {
                           matchMap( key, k ) match {
                             case Some( soln ) => {
                               if ( compareNameSpace( ns, kvNameSpace ) ) {
-                                emT.PlaceInstance(
-                                  k,
-                                  Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
-                                    mTT.Ground(
-                                      asCacheValue(
-                                        new CnxnCtxtBranch[String,String,String](
-                                          "string",
-                                          v :: Nil
-                                        )
-                                      )
-                                    )
-                                  ),
-                                  // BUGBUG -- lgm : why can't the compiler determine
-                                  // that this cast is not necessary?
-                                  theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                                val cacheValueRslt =
+                                  asCacheValue( new CnxnCtxtBranch[String,String,String]( "string", v :: Nil ) )
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nBaseAgentKVDB : "
+                                    + "\n method : mkCache"
+                                    + "\n ------------------------------------------ "
+		                    + "\n computed cacheValue: " + cacheValueRslt
+		                    + "\n ****************************************** "
+                                  )
                                 )
+                                val groundWrapper =
+                                  mTT.Ground( cacheValueRslt )
+                                val boundHMWrapper =
+                                  mTT.RBoundHM( Some( groundWrapper ), Some( soln ) )
+                                val boundWrapper =
+                                  mTT.asRBoundAList( boundHMWrapper )
+                                
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nBaseAgentKVDB : "
+                                    + "\n method : mkCache"
+		                    + "\n ------------------------------------------ "
+                                    + "\n boundWrapper: " + boundWrapper
+		                    + " ****************************** "
+                                  )
+                                )
+                                
+                                val finalRslt =
+                                  emT.PlaceInstance(
+                                    k,
+                                    Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
+                                      boundWrapper
+                                    ),
+                                    // BUGBUG -- lgm : why can't the compiler determine
+                                    // that this cast is not necessary?
+                                    theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                                  )
+                                
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nBaseAgentKVDB : "
+                                    + "\n method : mkCache"
+		                    + "\n ------------------------------------------ "
+                                    + "\n placeInstance: " + finalRslt
+		                    + " ****************************** "
+                                  )
+                                )
+                                
+                                finalRslt
                               }
                               else {
                                 if ( compareNameSpace( ns, kvKNameSpace ) ) {
@@ -2892,8 +2968,8 @@ package mongo.usage {
                               }
                             }
                             case None => {
-                              BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
-                              throw new Exception( "matchMap failure " + key + " " + k )
+                              //BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
+                              throw new UnificationQueryFilter( key, k, value )
                             }
                           }                                             
                         }
@@ -3175,22 +3251,59 @@ package mongo.usage {
                           matchMap( key, k ) match {
                             case Some( soln ) => {
                               if ( compareNameSpace( ns, kvNameSpace ) ) {
-                                emT.PlaceInstance(
-                                  k,
-                                  Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
-                                    mTT.Ground(
-                                      asCacheValue(
-                                        new CnxnCtxtBranch[String,String,String](
-                                          "string",
-                                          v :: Nil
-                                        )
-                                      )
-                                    )
-                                  ),
-                                  // BUGBUG -- lgm : why can't the compiler determine
-                                  // that this cast is not necessary?
-                                  theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                                val cacheValueRslt =
+                                  asCacheValue( new CnxnCtxtBranch[String,String,String]( "string", v :: Nil ) )
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nBaseAgentKVDB : "
+                                    + "\n method : mkCache"
+                                    + "\n ------------------------------------------ "
+		                    + "\n computed cacheValue: " + cacheValueRslt
+		                    + "\n ****************************************** "
+                                  )
                                 )
+                                val groundWrapper =
+                                  mTT.Ground( cacheValueRslt )
+                                val boundHMWrapper =
+                                  mTT.RBoundHM( Some( groundWrapper ), Some( soln ) )
+                                val boundWrapper =
+                                  mTT.asRBoundAList( boundHMWrapper )
+                                
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nBaseAgentKVDB : "
+                                    + "\n method : mkCache"
+		                    + "\n ------------------------------------------ "
+                                    + "\n boundWrapper: " + boundWrapper
+		                    + " ****************************** "
+                                  )
+                                )
+                                
+                                val finalRslt =
+                                  emT.PlaceInstance(
+                                    k,
+                                    Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
+                                      boundWrapper
+                                    ),
+                                    // BUGBUG -- lgm : why can't the compiler determine
+                                    // that this cast is not necessary?
+                                    theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                                  )
+                                
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nBaseAgentKVDB : "
+                                    + "\n method : mkCache"
+		                    + "\n ------------------------------------------ "
+                                    + "\n placeInstance: " + finalRslt
+		                    + " ****************************** "
+                                  )
+                                )
+                                
+                                finalRslt
                               }
                               else {
                                 if ( compareNameSpace( ns, kvKNameSpace ) ) {
@@ -3217,8 +3330,8 @@ package mongo.usage {
                               }
                             }
                             case None => {
-                              BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
-                              throw new Exception( "matchMap failure " + key + " " + k )
+                              //BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
+                              throw new UnificationQueryFilter( key, k, value )
                             }
                           }                                             
                         }
@@ -3518,22 +3631,59 @@ package mongo.usage {
                           matchMap( key, k ) match {
                             case Some( soln ) => {
                               if ( compareNameSpace( ns, kvNameSpace ) ) {
-                                emT.PlaceInstance(
-                                  k,
-                                  Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
-                                    mTT.Ground(
-                                      asCacheValue(
-                                        new CnxnCtxtBranch[String,String,String](
-                                          "string",
-                                          v :: Nil
-                                        )
-                                      )
-                                    )
-                                  ),
-                                  // BUGBUG -- lgm : why can't the compiler determine
-                                  // that this cast is not necessary?
-                                  theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                                val cacheValueRslt =
+                                  asCacheValue( new CnxnCtxtBranch[String,String,String]( "string", v :: Nil ) )
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nBaseAgentKVDB : "
+                                    + "\n method : mkCache"
+                                    + "\n ------------------------------------------ "
+		                    + "\n computed cacheValue: " + cacheValueRslt
+		                    + "\n ****************************************** "
+                                  )
                                 )
+                                val groundWrapper =
+                                  mTT.Ground( cacheValueRslt )
+                                val boundHMWrapper =
+                                  mTT.RBoundHM( Some( groundWrapper ), Some( soln ) )
+                                val boundWrapper =
+                                  mTT.asRBoundAList( boundHMWrapper )
+                                
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nBaseAgentKVDB : "
+                                    + "\n method : mkCache"
+		                    + "\n ------------------------------------------ "
+                                    + "\n boundWrapper: " + boundWrapper
+		                    + " ****************************** "
+                                  )
+                                )
+                                
+                                val finalRslt =
+                                  emT.PlaceInstance(
+                                    k,
+                                    Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
+                                      boundWrapper
+                                    ),
+                                    // BUGBUG -- lgm : why can't the compiler determine
+                                    // that this cast is not necessary?
+                                    theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                                  )
+                                
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nBaseAgentKVDB : "
+                                    + "\n method : mkCache"
+		                    + "\n ------------------------------------------ "
+                                    + "\n placeInstance: " + finalRslt
+		                    + " ****************************** "
+                                  )
+                                )
+                                
+                                finalRslt
                               }
                               else {
                                 if ( compareNameSpace( ns, kvKNameSpace ) ) {
@@ -3560,8 +3710,8 @@ package mongo.usage {
                               }
                             }
                             case None => {
-                              BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
-                              throw new Exception( "matchMap failure " + key + " " + k )
+                              //BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
+                              throw new UnificationQueryFilter( key, k, value )
                             }
                           }                                             
                         }
@@ -4010,7 +4160,7 @@ package mongo.usage {
 //       s.toList
 //     }
 
-  }
+  }  
 
   object TestConfigurationDefaults {
     val localHost : String = "localhost"
@@ -4527,3 +4677,5 @@ package mongo.usage {
     }
   }
 }
+
+

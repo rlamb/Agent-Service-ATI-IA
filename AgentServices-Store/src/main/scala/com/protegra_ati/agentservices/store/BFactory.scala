@@ -417,22 +417,59 @@ package bfactory {
                     matchMap( key, k ) match {
                       case Some( soln ) => {
                         if ( compareNameSpace( ns, kvNameSpace ) ) {
-                          emT.PlaceInstance(
-                            k,
-                            Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
-                              mTT.Ground(
-                                asCacheValue(
-                                  new CnxnCtxtBranch[String,String,String](
-                                    "string",
-                                    v :: Nil
-                                  )
-                                )
-                              )
-                            ),
-                            // BUGBUG -- lgm : why can't the compiler determine
-                            // that this cast is not necessary?
-                            theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                          val cacheValueRslt =
+                              asCacheValue( new CnxnCtxtBranch[String,String,String]( "string", v :: Nil ) )
+                          BasicLogService.tweet(
+                            (
+                              " ****************************************** "
+                              + "\nBFactory AgentKVDB : "
+                              + "\n method : mkCache"
+                              + "\n ------------------------------------------ "
+		              + "\n computed cacheValue: " + cacheValueRslt
+		              + "\n ****************************************** "
+                            )
                           )
+                          val groundWrapper =
+                            mTT.Ground( cacheValueRslt )
+                          val boundHMWrapper =
+                            mTT.RBoundHM( Some( groundWrapper ), Some( soln ) )
+                          val boundWrapper =
+                            mTT.asRBoundAList( boundHMWrapper )
+
+                          BasicLogService.tweet(
+                            (
+                              " ****************************************** "
+                              + "\nBFactory AgentKVDB : "
+                              + "\n method : mkCache"
+		              + "\n ------------------------------------------ "
+                              + "\n boundWrapper: " + boundWrapper
+		              + " ****************************** "
+                            )
+                          )
+
+                          val finalRslt =
+                            emT.PlaceInstance(
+                              k,
+                              Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
+                                boundWrapper
+                              ),
+                              // BUGBUG -- lgm : why can't the compiler determine
+                              // that this cast is not necessary?
+                              theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                            )
+                          
+                          BasicLogService.tweet(
+                            (
+                              " ****************************************** "
+                              + "\nBFactory AgentKVDB : "
+                              + "\n method : mkCache"
+		              + "\n ------------------------------------------ "
+                              + "\n placeInstance: " + finalRslt
+		              + " ****************************** "
+                            )
+                          )
+                            
+                          finalRslt
                         }
                         else {
                           if ( compareNameSpace( ns, kvKNameSpace ) ) {
@@ -459,8 +496,8 @@ package bfactory {
                         }
                       }
                       case None => {
-                        BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
-                        throw new Exception( "matchMap failure " + key + " " + k )
+                        //BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
+                        throw new UnificationQueryFilter( key, k, value )
                       }
                     }                                           
                   }
@@ -735,22 +772,59 @@ package bfactory {
                           matchMap( key, k ) match {
                             case Some( soln ) => {
                               if ( compareNameSpace( ns, kvNameSpace ) ) {
-                                emT.PlaceInstance(
-                                  k,
-                                  Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
-                                    mTT.Ground(
-                                      asCacheValue(
-                                        new CnxnCtxtBranch[String,String,String](
-                                          "string",
-                                          v :: Nil
-                                        )
-                                      )
-                                    )
-                                  ),
-                                  // BUGBUG -- lgm : why can't the compiler determine
-                                  // that this cast is not necessary?
-                                  theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                                val cacheValueRslt =
+                                  asCacheValue( new CnxnCtxtBranch[String,String,String]( "string", v :: Nil ) )
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nBFactory AgentKVDB : "
+                                    + "\n method : mkCache"
+                                    + "\n ------------------------------------------ "
+		                    + "\n computed cacheValue: " + cacheValueRslt
+		                    + "\n ****************************************** "
+                                  )
                                 )
+                                val groundWrapper =
+                                  mTT.Ground( cacheValueRslt )
+                                val boundHMWrapper =
+                                  mTT.RBoundHM( Some( groundWrapper ), Some( soln ) )
+                                val boundWrapper =
+                                  mTT.asRBoundAList( boundHMWrapper )
+                                
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nBFactory AgentKVDB : "
+                                    + "\n method : mkCache"
+		                    + "\n ------------------------------------------ "
+                                    + "\n boundWrapper: " + boundWrapper
+		                    + " ****************************** "
+                                  )
+                                )
+                                
+                                val finalRslt =
+                                  emT.PlaceInstance(
+                                    k,
+                                    Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
+                                      boundWrapper
+                                    ),
+                                    // BUGBUG -- lgm : why can't the compiler determine
+                                    // that this cast is not necessary?
+                                    theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                                  )
+                                
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nBFactory AgentKVDB : "
+                                    + "\n method : mkCache"
+		                    + "\n ------------------------------------------ "
+                                    + "\n placeInstance: " + finalRslt
+		                    + " ****************************** "
+                                  )
+                                )
+                                
+                                finalRslt
                               }
                               else {
                                 if ( compareNameSpace( ns, kvKNameSpace ) ) {
@@ -777,8 +851,8 @@ package bfactory {
                               }
                             }
                             case None => {
-                              BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
-                              throw new Exception( "matchMap failure " + key + " " + k )
+                              //BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
+                              throw new UnificationQueryFilter( key, k, value )
                             }
                           }                                             
                         }
@@ -1102,22 +1176,59 @@ package bfactory {
                           matchMap( key, k ) match {
                             case Some( soln ) => {
                               if ( compareNameSpace( ns, kvNameSpace ) ) {
-                                emT.PlaceInstance(
-                                  k,
-                                  Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
-                                    mTT.Ground(
-                                      asCacheValue(
-                                        new CnxnCtxtBranch[String,String,String](
-                                          "string",
-                                          v :: Nil
-                                        )
-                                      )
-                                    )
-                                  ),
-                                  // BUGBUG -- lgm : why can't the compiler determine
-                                  // that this cast is not necessary?
-                                  theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                                val cacheValueRslt =
+                                  asCacheValue( new CnxnCtxtBranch[String,String,String]( "string", v :: Nil ) )
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nBFactory AgentKVDB : "
+                                    + "\n method : mkCache"
+                                    + "\n ------------------------------------------ "
+		                    + "\n computed cacheValue: " + cacheValueRslt
+		                    + "\n ****************************************** "
+                                  )
                                 )
+                                val groundWrapper =
+                                  mTT.Ground( cacheValueRslt )
+                                val boundHMWrapper =
+                                  mTT.RBoundHM( Some( groundWrapper ), Some( soln ) )
+                                val boundWrapper =
+                                  mTT.asRBoundAList( boundHMWrapper )
+                                
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nBFactory AgentKVDB : "
+                                    + "\n method : mkCache"
+		                    + "\n ------------------------------------------ "
+                                    + "\n boundWrapper: " + boundWrapper
+		                    + " ****************************** "
+                                  )
+                                )
+                                
+                                val finalRslt =
+                                  emT.PlaceInstance(
+                                    k,
+                                    Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
+                                      boundWrapper
+                                    ),
+                                    // BUGBUG -- lgm : why can't the compiler determine
+                                    // that this cast is not necessary?
+                                    theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                                  )
+                                
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nBFactory AgentKVDB : "
+                                    + "\n method : mkCache"
+		                    + "\n ------------------------------------------ "
+                                    + "\n placeInstance: " + finalRslt
+		                    + " ****************************** "
+                                  )
+                                )
+                                
+                                finalRslt
                               }
                               else {
                                 if ( compareNameSpace( ns, kvKNameSpace ) ) {
@@ -1144,7 +1255,7 @@ package bfactory {
                               }
                             }
                             case None => {
-                              BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
+                              //BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
                               throw new UnificationQueryFilter( key, k, value )
                             }
                           }                                             
@@ -1449,22 +1560,59 @@ package bfactory {
                           matchMap( key, k ) match {
                             case Some( soln ) => {
                               if ( compareNameSpace( ns, kvNameSpace ) ) {
-                                emT.PlaceInstance(
-                                  k,
-                                  Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
-                                    mTT.Ground(
-                                      asCacheValue(
-                                        new CnxnCtxtBranch[String,String,String](
-                                          "string",
-                                          v :: Nil
-                                        )
-                                      )
-                                    )
-                                  ),
-                                  // BUGBUG -- lgm : why can't the compiler determine
-                                  // that this cast is not necessary?
-                                  theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                                val cacheValueRslt =
+                                  asCacheValue( new CnxnCtxtBranch[String,String,String]( "string", v :: Nil ) )
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nBFactory AgentKVDB : "
+                                    + "\n method : mkCache"
+                                    + "\n ------------------------------------------ "
+		                    + "\n computed cacheValue: " + cacheValueRslt
+		                    + "\n ****************************************** "
+                                  )
                                 )
+                                val groundWrapper =
+                                  mTT.Ground( cacheValueRslt )
+                                val boundHMWrapper =
+                                  mTT.RBoundHM( Some( groundWrapper ), Some( soln ) )
+                                val boundWrapper =
+                                  mTT.asRBoundAList( boundHMWrapper )
+                                
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nBFactory AgentKVDB : "
+                                    + "\n method : mkCache"
+		                    + "\n ------------------------------------------ "
+                                    + "\n boundWrapper: " + boundWrapper
+		                    + " ****************************** "
+                                  )
+                                )
+                                
+                                val finalRslt =
+                                  emT.PlaceInstance(
+                                    k,
+                                    Left[mTT.Resource,List[Option[mTT.Resource] => Unit @suspendable]](
+                                      boundWrapper
+                                    ),
+                                    // BUGBUG -- lgm : why can't the compiler determine
+                                    // that this cast is not necessary?
+                                    theEMTypes.PrologSubstitution( soln ).asInstanceOf[emT.Substitution]
+                                  )
+                                
+                                BasicLogService.tweet(
+                                  (
+                                    " ****************************************** "
+                                    + "\nBFactory AgentKVDB : "
+                                    + "\n method : mkCache"
+		                    + "\n ------------------------------------------ "
+                                    + "\n placeInstance: " + finalRslt
+		                    + " ****************************** "
+                                  )
+                                )
+                                
+                                finalRslt
                               }
                               else {
                                 if ( compareNameSpace( ns, kvKNameSpace ) ) {
@@ -1491,8 +1639,8 @@ package bfactory {
                               }
                             }
                             case None => {
-                              BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
-                              throw new Exception( "matchMap failure " + key + " " + k )
+                              //BasicLogService.tweet( "Unexpected matchMap failure: " + key + " " + k )
+                              throw new UnificationQueryFilter( key, k, value )
                             }
                           }                                             
                         }
@@ -1967,7 +2115,7 @@ package bfactory {
               )
               
               e match {
-                case Some( mTT.Ground( ConcreteBFactHL.WrappedBehaviorIdentifier( behavior ) ) ) => {                                    
+                case Some( mTT.Ground( ConcreteBFactHL.WrappedBehaviorIdentifier( behavior ) ) ) => {    
                   try {
                     BasicLogService.tweet(
                       "method: evaluateExpression"
@@ -1985,9 +2133,7 @@ package bfactory {
                     )
                     BFactoryMirror.instanceEntryPoint( behavior, "run" ) match {
                       case Left( entryPointM ) => {
-                        //val t = new Thread {
                         spawn {
-                          //override def run() = {
                             val instanceID = UUID.randomUUID
                             val instanceLabel =
                               StorageLabels.instanceStorageLabel()( Left[String,String]( instanceID.toString ) )
@@ -2002,9 +2148,7 @@ package bfactory {
                                 )
                               )
                             )
-                        // }
                         }
-                        //t.run()
                       }
                       case Right( e ) => {
                         handler( 
@@ -2036,7 +2180,73 @@ package bfactory {
                       )
                     }
                   }                      
-                }
+                };
+                case Some( mTT.RBoundAList( Some( mTT.Ground( ConcreteBFactHL.WrappedBehaviorIdentifier( behavior ))), _ ) ) => {           
+                  try {
+                    BasicLogService.tweet(
+                      "method: evaluateExpression"
+                      + "\n instantiating instance & finding entry point"
+                      + "\nthis: " + this
+                      + "\nnode: " + node
+                      + "\nexpr: " + expr
+                      + "\nhandler: " + handler
+                      + "\n-----------------------------------------"
+                      + "\nbehaviorDefinitionCnxn: " + agntCnxn
+                      + "\nbehaviorDefinitionLabel: " + bdl
+                      + "\nbehavior: " + behavior
+                      + "\ncnxns: " + cnxns
+                      + "\nfilters: " + filters
+                    )
+                    BFactoryMirror.instanceEntryPoint( behavior, "run" ) match {
+                      case Left( entryPointM ) => {
+                        spawn {
+                            val instanceID = UUID.randomUUID
+                            val instanceLabel =
+                              StorageLabels.instanceStorageLabel()( Left[String,String]( instanceID.toString ) )
+                            entryPointM( dslN, cnxns, filters )
+                            handler( 
+                              Some(
+                                mTT.Ground(
+                                  ConcreteBFactHL.InstanceRunning(
+                                    bdc,
+                                    instanceLabel
+                                  )
+                                )
+                              )
+                            )
+                        }
+                      }
+                      case Right( e ) => {
+                        handler( 
+                          Some(
+                            mTT.Ground(
+                              ConcreteBFactHL.InstanceNotRunning(
+                                bdc,
+                                bdl,
+                                "instantiation failed" + e
+                              )
+                            )
+                          )
+                        )
+                      }
+                    }
+                  }
+                  catch {
+                    case e : Throwable => {
+                      handler( 
+                        Some(
+                          mTT.Ground(
+                            ConcreteBFactHL.InstanceNotRunning(
+                              bdc,
+                              bdl,
+                              "instantiation failed" + e
+                            )
+                          )
+                        )
+                      )
+                    }
+                  }                      
+                };
                 case _ => {
                   handler( 
                     Some(
