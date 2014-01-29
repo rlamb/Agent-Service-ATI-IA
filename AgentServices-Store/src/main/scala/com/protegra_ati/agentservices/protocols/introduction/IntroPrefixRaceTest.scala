@@ -7,15 +7,9 @@ object NodeSupply extends FuzzyStreams with Serializable {
   import com.biosimilarity.evaluator.distribution.diesel.DieselEngineScope._
   import java.util.UUID
 
-  def nodeStream(
-  ) : Stream[Being.AgentKVDBNode[PersistedKVDBNodeRequest, PersistedKVDBNodeResponse]] = {
-    tStream[Being.AgentKVDBNode[PersistedKVDBNodeRequest, PersistedKVDBNodeResponse]](
-      DieselEngineCtor.dslEvaluatorAgent( )
-    )(
-      {
-        seed => DieselEngineCtor.dslEvaluatorAgent( )
-      }
-    )
+  def nodeStream(): Stream[Being.AgentKVDBNode[PersistedKVDBNodeRequest, PersistedKVDBNodeResponse]] = {
+    tStream[Being.AgentKVDBNode[PersistedKVDBNodeRequest, PersistedKVDBNodeResponse]](DieselEngineCtor.dslEvaluatorAgent())(
+      { seed => DieselEngineCtor.dslEvaluatorAgent( ) })
   }
 
   def keyNodeStream(
