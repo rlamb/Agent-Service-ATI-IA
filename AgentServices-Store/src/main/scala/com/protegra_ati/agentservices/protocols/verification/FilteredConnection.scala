@@ -1,10 +1,10 @@
-package com.protegra_ati.agentservices.verificationProtocol
+package com.protegra_ati.agentservices.protocols.verification
 
 // Import Objects
 import scala.util.continuations._
 import com.protegra_ati.agentservices.store.extensions.StringExtensions._
 import com.biosimilarity.evaluator.distribution.diesel.DieselEngineScope._
-import com.protegra_ati.agentservices.verificationProtocol.PackageUtil._
+import com.protegra_ati.agentservices.protocols.verification.PackageUtil._
 import com.biosimilarity.lift.lib.BasicLogService
 
 // Import Classes & Packages

@@ -1,4 +1,4 @@
-package com.protegra_ati.agentservices.verificationProtocol
+package com.protegra_ati.agentservices.protocols.verification
 
 import PackageUtil._
 import com.protegra_ati.agentservices.store.extensions.StringExtensions._

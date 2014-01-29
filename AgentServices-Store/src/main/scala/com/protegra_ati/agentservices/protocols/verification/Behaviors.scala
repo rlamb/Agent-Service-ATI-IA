@@ -1,58 +1,34 @@
-package com.protegra_ati.agentservices.verificationProtocol
+package com.protegra_ati.agentservices.protocols.verification
 
-import PackageUtil._
-import com.protegra_ati.agentservices.verificationProtocol.FilteredConnection._
 
-case class VerifierBehavior() {
+import com.protegra_ati.agentservices.protocols.verification.PackageUtil._
+import com.protegra_ati.agentservices.protocols.verification.FilteredConnection._
+import com.biosimilarity.lift.lib.BasicLogService
 
-  def run(kvdbNode: KVDBNode, r2v: Connection) {
-    implicit val kvdb = kvdbNode
+object Tweet {
+  def apply(msg: String) {
+    BasicLogService.tweet("\n\n\n\t\t\t\t"+ msg+"\n\n\n")
+  }
 
-    // Listen for a claim.
-    r2v ? ({ case ProduceClaim(token, claimStr, r2c, r2vPrime) if r2vPrime == r2v =>
-
-      // Build the claim.
-      val claim = new Claim()
-      claim.token = token
-      claim.claim = claimStr
-      claim.verifier = r2v.trgt.toString
-      claim.relParty = r2v.src.toString
-      claim.claimant = r2c.trgt.toString
-
-      // Push a notification to GLoSEval.
-      r2v ! ClaimProduced(token, claimStr, r2c)
-
-      // Request the claimant's permission to verify the claim.
-      val v2c = claim.connection(Verifier, Claimant)
-      val v2r = claim.connection(Verifier, RelParty)
-
-      v2c ! TapClaimant(token, claimStr, v2c, v2r)
-
-      // Wait for permission to verify the claim.
-      val c2v = claim.connection(Claimant, Verifier)
-      val c2r = claim.connection(Claimant, RelParty)
-
-      c2v ? ({ case AuthorizeVerifier(tokenPrime, claimStrPrime, c2vPrime, c2rPrime)
-        if (c2vPrime == c2v &&
-            c2rPrime == c2r &&
-            tokenPrime == token &&
-            claimStrPrime == claimStr) =>
-
-        // Push a notification to GLoSEval
-        (c2v / ClaimAuthorized.filter) ! ClaimAuthorized(token, claimStr, c2r)
-
-      }: AuthorizeVerifier => Unit)
-    }: ProduceClaim => Unit)
+  def apply(msgs: Seq[String]) {
+    for(msg <- msgs) {
+      Tweet(msg)
+    }
   }
 }
 
-case class ReliantPartyBehavior() {
+case class VerifierBehavior() {
 
-  def run(kvdbNode: KVDBNode, c2r: Connection) {
+  def run(kvdbNode: KVDBNode, c2v: Connection) {
     implicit val kvdb = kvdbNode
 
-    // Listen for a claim.
-    c2r ? ({ case SubmitClaim(token, claimStr, c2v, c2rPrime) if c2rPrime == c2r =>
+    // Wait for authorization on a claim
+    Tweet("Verifier: Waiting for AuthorizeVerifier")
+    c2v ? ({ case AuthorizeVerifier(token, claimStr, c2v, c2r) =>
+      Tweet("Verifier: Received AuthorizeVerifier")
+
+      // TODO: Notify the user.
+      Tweet("Claim Authorized.")
 
       // Build the claim.
       val claim = new Claim()
@@ -62,30 +38,80 @@ case class ReliantPartyBehavior() {
       claim.relParty = c2r.trgt.toString
       claim.claimant = c2r.src.toString
 
-      // Push a notification to GLoSEval.
-      c2r ! ClaimSubmitted(token, claimStr, c2v)
-
-      // Produce the claim for the verifier.
+      // Wait for the claim to be submitted.
       val r2c = claim.connection(RelParty, Claimant)
       val r2v = claim.connection(RelParty, Verifier)
 
-      r2v ! ProduceClaim(token, claimStr, r2c, r2v)
+      Tweet("Verifier: Waiting for ProduceClaim")
+      r2v ? ({ case ProduceClaim(tokenPrime, claimStrPrime, r2cPrime, r2vPrime)
+        if (tokenPrime == token &&
+            claimStrPrime == claimStr &&
+            r2cPrime == r2c &&
+            r2vPrime == r2v) =>
+        Tweet("Verifier: Got ProduceClaim")
 
-      // Wait for the verifier to validate the claim.
+        // TODO: Notify the user.
+        BasicLogService.tweet("\n\nClaim Produced.\n\n")
+
+        // Validate the claim
+        val v2c = claim.connection(Verifier, Claimant)
+        val v2r = claim.connection(Verifier, RelParty)
+
+        Tweet("Verifier: Sending ValidateClaim")
+        v2r ! ValidateClaim(token, claimStr, check(claim), v2c, v2r)
+        Tweet("Verifier: Sent ValidateClaim")
+
+      }: ProduceClaim => Unit)
+    }: AuthorizeVerifier => Unit)
+
+  }
+
+  def check(claim: Claim): Boolean = { true }
+}
+
+case class RelyingPartyBehavior() {
+
+  def run(kvdbNode: KVDBNode, c2r: Connection) {
+    implicit val kvdb = kvdbNode
+
+    // Wait for claim.
+    Tweet("Relying Party: Waiting for SubmitClaim")
+    c2r ? ({ case SubmitClaim(token, claimStr, c2v, c2r) =>
+      BasicLogService.tweet("Relying Party: Received a SubmitClaim")
+
+      // TODO: Notify the user.
+
+      // Build the claim.
+      val claim = new Claim()
+      claim.token = token
+      claim.claim = claimStr
+      claim.verifier = c2v.trgt.toString
+      claim.relParty = c2r.trgt.toString
+      claim.claimant = c2r.src.toString
+
+      // Produce the claim
+      val r2c = claim.connection(RelParty, Claimant)
+      val r2v = claim.connection(RelParty, Verifier)
+
+      BasicLogService.tweet("Relying Party: Sending ProduceClaim")
+      r2v ! ProduceClaim(token, claimStr, r2c, r2v)
+      BasicLogService.tweet("Relying Party: Sent ProduceClaim")
+
+      // Wait for the verifier
       val v2c = claim.connection(Verifier, Claimant)
       val v2r = claim.connection(Verifier, RelParty)
 
-      claim.connection(Verifier, RelParty) ? ({ case ValidateClaim(tokenPrime, claimStrPrime, ans, v2cPrime, v2rPrime)
-        if (v2cPrime == v2c &&
-            v2rPrime == v2r &&
-            tokenPrime == token &&
-            claimStrPrime == claimStr) =>
+      BasicLogService.tweet("Relying Party: Waiting for ValidateClaim")
+      v2r ? ({ case ValidateClaim(tokenPrime, claimStrPrime, response, v2cPrime, v2rPrime) =>
+        BasicLogService.tweet("Relying Party: Received ValidateClaim")
 
-        // Push a notification to GLoSEval
-        v2r ! ClaimVerified(token, claimStr, ans, v2c)
+        // TODO: Notify the user.
+        BasicLogService.tweet("\n\nClaim Verified.\n\n")
 
         // Notify the claimant
+        BasicLogService.tweet("Relying Party: Sending CompleteClaim")
         r2c ! CompleteClaim(token, claimStr, r2c, r2v)
+        BasicLogService.tweet("Relying Party: Sent CompleteClaim")
 
       }: ValidateClaim => Unit)
     }: SubmitClaim => Unit)
@@ -94,47 +120,56 @@ case class ReliantPartyBehavior() {
 
 case class ClaimantBehavior() {
 
-  def run(kvdbNode: KVDBNode, v2c: Connection) {
+  def run(kvdbNode: KVDBNode, aliasCnxn: Connection) {
     implicit val kvdb = kvdbNode
 
-    // Wait for verifier.
-    v2c ? ({ case TapClaimant(token, claimStr, v2cPrime, v2r) if v2cPrime == v2c =>
+    Tweet("Claimant: Waiting for AuthorizeVerifier (non-compliant start message)")
+    aliasCnxn ? ({ case AuthorizeVerifier(token, claimStr, c2v, c2r) =>
+    Tweet("Claimant: Received AuthorizeVerifier (non-compliant start message)")
 
       // Build the claim.
       val claim = new Claim()
       claim.token = token
       claim.claim = claimStr
-      claim.verifier = v2c.src.toString
-      claim.relParty = v2r.trgt.toString
-      claim.claimant = v2c.trgt.toString
+      claim.verifier = c2v.trgt.toString
+      claim.relParty = c2r.trgt.toString
+      claim.claimant = c2r.src.toString
 
-      // Push notification to GLoSEval
-      v2c ! AuthorizationRequested(token, claimStr, v2r)
+      // Authorize the verifier.
+      Tweet("Claimant: Sending AuthorizeVerifier")
+      c2v ! AuthorizeVerifier(token, claimStr, c2v, c2r)
+      Tweet("Claimant: Sent AuthorizeVerifier")
 
-      // Wait for reliant party.
+      // Submit the claim.
+      Tweet("Claimant: Sending SubmitClaim")
+      c2r ! SubmitClaim(token, claimStr, c2v, c2r)
+      Tweet("Claimant: Sent SubmitClaim")
+
+      // Wait for the relying party
       val r2c = claim.connection(RelParty, Claimant)
       val r2v = claim.connection(RelParty, Verifier)
 
-      r2c ? ({ case CompleteClaim(tokenPrime, claimStrPrime, r2cPrime, r2vPrime)
-        if (r2cPrime == r2c &&
-            r2vPrime == r2v &&
-            tokenPrime == token &&
-            claimStrPrime == claimStr) =>
+      Tweet("Claimant: Waiting for CompleteClaim")
+      r2c ? ({ case CompleteClaim(tokenPrime, claimStrPrime, r2cPrime, r2vPrime) =>
+        Tweet("Claimant: Received CompleteClaim")
 
-        // Push notification to GLoSEval
-        r2c ! ClaimComplete(token, claimStr, r2v)
+        // TODO: Notify the user.
+        Tweet("\n\nClaim Complete.\n\n")
 
       }: CompleteClaim => Unit)
-    }: TapClaimant => Unit)
+    }: AuthorizeVerifier => Unit)
   }
 }
 
-package usage {
+package test {
 
-import java.net.URI
+import FilteredConnection._
 import com.biosimilarity.evaluator.distribution.diesel.DieselEngineScope._
+import com.biosimilarity.evaluator.distribution.PortableAgentCnxn
+import java.net.URI
 
-object VPTest {
+object Behaviors2 {
+
 
   val dslNodeKey = "foobarbazqux"
   implicit val kvdb: Being.AgentKVDBNode[PersistedKVDBNodeRequest, PersistedKVDBNodeResponse] = {
@@ -144,17 +179,17 @@ object VPTest {
     res
   }
 
-  val addr = "agent://e6eca9b84dd49d91e45c9e23cd74d2d98bb1"
+  def agent(str: String) = s"agent://%s".format(str)
 
   val mockClaim = new Claim()
   mockClaim.token = "kjhaslkdjhflakjshflkajshdfasdflakjhasdf"
   mockClaim.claim = "claimy claim claim"
-  mockClaim.verifier = addr
-  mockClaim.relParty = addr
-  mockClaim.claimant = addr
+  mockClaim.verifier = agent("verifier")
+  mockClaim.relParty = agent("relParty")
+  mockClaim.claimant = agent("claimant")
 
   val verifier = VerifierBehavior()
-  val reliantParty = ReliantPartyBehavior()
+  val relyingParty = RelyingPartyBehavior()
   val claimant = ClaimantBehavior()
 
   val (v2r, v2c, r2v, r2c, c2v, c2r) =
@@ -165,15 +200,17 @@ object VPTest {
       mockClaim.connection(Claimant, Verifier),
       mockClaim.connection(Claimant, RelParty))
 
+  val clmtAlias = PortableAgentCnxn(new URI(agent("gloseval")), "MyLabel", new URI(agent("claimant")))
+
   def exercise() {
-    verifier.run(kvdb, r2v)
-    reliantParty.run(kvdb, c2r)
-    claimant.run(kvdb, v2c)
+    verifier.run(kvdb, c2v)
+    relyingParty.run(kvdb, c2r)
+    claimant.run(kvdb, clmtAlias)
     readLine("Press enter key to submit claim")
-    r2v ! SubmitClaim(mockClaim.token, mockClaim.claim, c2v, c2r)
+    Tweet("Sending AuthorizeVerifier to Verifier via Claimant")
+    val msg = AuthorizeVerifier(mockClaim.token, mockClaim.claim, c2v, c2r)
+    clmtAlias ! AuthorizeVerifier(mockClaim.token, mockClaim.claim, c2v, c2r)
+    Tweet("Sent AuthorizeVerifier to Verifier via Claimant")
   }
-
-}
-
-
+  }
 }

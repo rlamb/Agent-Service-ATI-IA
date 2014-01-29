@@ -1,9 +1,8 @@
-package com.protegra_ati.agentservices.verificationProtocol
+package com.protegra_ati.agentservices.protocols.verification
 
 import org.json4s.{ JValue => JSON, _}
 import org.json4s.native.JsonMethods._
 import org.json4s.JsonDSL._
-import com.protegra_ati.agentservices.verificationProtocol.FilteredConnection.PortableAgentConnection
 import com.biosimilarity.evaluator.distribution.PortableAgentCnxn
 import java.net.URI
 

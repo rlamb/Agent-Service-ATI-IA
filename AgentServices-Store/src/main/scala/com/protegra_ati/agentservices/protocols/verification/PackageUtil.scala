@@ -1,4 +1,4 @@
-package com.protegra_ati.agentservices.verificationProtocol
+package com.protegra_ati.agentservices.protocols.verification
 
 import com.biosimilarity.evaluator.distribution.{PortableAgentCnxn, PortableAgentBiCnxn}
 import com.biosimilarity.evaluator.distribution.diesel.DieselEngineScope._
