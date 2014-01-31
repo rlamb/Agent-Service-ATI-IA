@@ -1,8 +1,6 @@
 package com.protegra_ati.agentservices.protocols.verification
 
-import org.json4s.{ JValue => JSON, _}
-import org.json4s.native.JsonMethods._
-import org.json4s.JsonDSL._
+import com.protegra_ati.agentservices.store.util.Sugar._
 import com.biosimilarity.evaluator.distribution.PortableAgentCnxn
 import java.net.URI
 
@@ -22,7 +20,7 @@ class Claim() extends Serializable {
   var relParty: String = "N/A"
   var claimant: String = "N/A"
 
-  def connection(sender: PartyType, receiver: PartyType): PortableAgentCnxn = {
+  def connection(sender: PartyType, receiver: PartyType): Connection = {
     val (source, label, target) =
       (sender, receiver) match {
         case (Verifier, RelParty) => (verifier, "NODE_V2R_LABEL", relParty)
@@ -37,18 +35,66 @@ class Claim() extends Serializable {
   }
 
   def isSubClaimOf(claim: Claim): Boolean = {
-    val c1 = token.equals(claim.token)
-    val c2 = claim.equals(claim.claim)
-    val c3a = claim.verifier.equals("N/A") || verifier.equals(claim.verifier)
-    val c3b = claim.relParty.equals("N/A") || relParty.equals(claim.relParty)
-    val c3c = claim.claimant.equals("N/A") || claimant.equals(claim.claimant)
+    val c1 = token == claim.token
+    val c2 = this.claim == claim.claim
+    val c3a = claim.verifier == "N/A" || verifier == claim.verifier
+    val c3b = claim.relParty == "N/A" || relParty == claim.relParty
+    val c3c = claim.claimant == "N/A" || claimant == claim.claimant
     val c3 =
       ((c3a && c3b && c3c)
         || (!c3a && c3b && c3c)
         || (c3a && !c3b && c3c)
         || (c3a && c3b && !c3c))
+    if(!c1) { Tweet("c1 fails") }
+    if(!c2) { Tweet("c2 fails") }
+    if(!c3) { Tweet("c3 fails") }
     c1 && c2 && c3
   }
 
+  override def toString = s"($token, $claim, $verifier, $relParty, $claimant)"
+
 }
 
+object Claim {
+
+  def apply(token: String, claimStr: String, connections: Connection*): Claim = {
+    val claim = new Claim()
+    claim.token = token
+    claim.claim = claimStr
+
+    def addConnection(connection: Connection) {
+      def catchConflict(left: String, right: String): String = {
+        if(left == "N/A" || left == right) {
+          right
+        } else {
+          throw new RuntimeException("Invalid update in Claim: %s != %s".format(left, right))
+        }
+      }
+
+      connection.label match {
+        case "NODE_V2R_LABEL" =>
+          claim.verifier = catchConflict(claim.verifier, connection.src.toString)
+          claim.relParty = catchConflict(claim.relParty, connection.trgt.toString)
+        case "NODE_V2C_LABEL" =>
+          claim.verifier = catchConflict(claim.verifier, connection.src.toString)
+          claim.claimant = catchConflict(claim.claimant, connection.trgt.toString)
+        case "NODE_R2V_LABEL" =>
+          claim.relParty = catchConflict(claim.relParty, connection.src.toString)
+          claim.verifier = catchConflict(claim.verifier, connection.trgt.toString)
+        case "NODE_R2C_LABEL" =>
+          claim.relParty = catchConflict(claim.relParty, connection.src.toString)
+          claim.claimant = catchConflict(claim.claimant, connection.trgt.toString)
+        case "NODE_C2V_LABEL" =>
+          claim.claimant = catchConflict(claim.claimant, connection.src.toString)
+          claim.verifier = catchConflict(claim.verifier, connection.trgt.toString)
+        case "NODE_C2R_LABEL" =>
+          claim.claimant = catchConflict(claim.claimant, connection.src.toString)
+          claim.relParty = catchConflict(claim.relParty, connection.trgt.toString)
+        case unexpected => throw new RuntimeException("Unexpected connection label: %s".format(unexpected))
+      }
+    }
+
+    for(connection <- connections) { addConnection(connection) }
+    claim
+  }
+}

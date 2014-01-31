@@ -1,18 +1,20 @@
-package com.protegra_ati.agentservices.protocols.verification
+package com.protegra_ati.agentservices.store.util
 
 import com.biosimilarity.evaluator.distribution.{PortableAgentCnxn, PortableAgentBiCnxn}
 import com.biosimilarity.evaluator.distribution.diesel.DieselEngineScope._
 import com.biosimilarity.lift.model.store.CnxnCtxtLabel
 import com.protegra_ati.agentservices.store.extensions.StringExtensions._
 import java.net.URI
+import com.protegra_ati.agentservices.protocols.verification.Message
+import com.biosimilarity.lift.lib.BasicLogService
 
-object PackageUtil {
+object Sugar {
 
 
   type KVDBNode = Being.AgentKVDBNode[PersistedKVDBNodeRequest, PersistedKVDBNodeResponse]
   type Connection = PortableAgentCnxn
-  type Identifier = String
   type Label = CnxnCtxtLabel[String, String, String]
+  type Filter = Label // doi
 
   implicit def uriOfString(str: String): URI = new URI(str)
 
@@ -32,6 +34,12 @@ object PackageUtil {
       val name = obj.getClass.getSimpleName.toCamelCase
       val hash = Math.abs(obj.hashCode())
       s"protocolMessage($name($hash))"
+    }
+  }
+
+  object Tweet {
+    def apply(msg: String) {
+      BasicLogService.tweet(s"\n\n\n\t\t\t\t$msg")
     }
   }
 

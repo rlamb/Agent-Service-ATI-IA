@@ -1,16 +1,13 @@
 package com.protegra_ati.agentservices.protocols.verification
 
-import PackageUtil._
+import com.protegra_ati.agentservices.store.util.Sugar
+import Sugar._
 import com.protegra_ati.agentservices.store.extensions.StringExtensions._
 import com.biosimilarity.lift.lib.BasicLogService
 
 sealed class Message {
  val filter = SimpleFilter(this.getClass)
- val label = {
-   val res = SimpleLabel(this)
-   Tweet("LABEL: " + res)
-   res
- }
+ val label = SimpleLabel(this)
 }
 
 sealed class Request extends Message
@@ -22,7 +19,7 @@ case object ValidateClaim extends Request
 case object CompleteClaim extends Request
 case object CancelClaim extends Request
 
-sealed class Response(args: Any*) extends Message
+sealed class Response extends Message
 case object ClaimSubmitted extends Response
 case object ClaimProduced extends Response
 case object AuthorizationRequested extends Response
@@ -60,7 +57,7 @@ case class ClaimComplete(token: String, claim: String, r2v: Connection) extends 
 
 // Also, anybody can cancel a claim.
 case class CancelClaim(token: String, claim: String, a2b: Connection, a2c: Connection) extends Request
-case class ClaimCancelled(token: String, claim: String) extends Response(token, claim)
+case class ClaimCancelled(token: String, claim: String) extends Response
 
 
 

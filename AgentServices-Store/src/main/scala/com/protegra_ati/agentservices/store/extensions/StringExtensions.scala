@@ -22,10 +22,10 @@ extends CnxnXQueryParser
     def toCamelCase: String = {
       source.substring(0,1).toLowerCase + source.substring(1)
     }
+
     def fromCamelCase:String = {
       source.substring(0,1).toUpperCase + source.substring(1)
     }
-
 
     def trimPackage: String = {
       if (source == null) return ""

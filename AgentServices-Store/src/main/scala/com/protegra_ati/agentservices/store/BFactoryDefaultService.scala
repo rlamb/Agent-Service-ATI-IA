@@ -18,7 +18,7 @@ import org.json4s.native.JsonMethods._
 import org.json4s.JsonDSL._
 
 import scala.concurrent.duration._
-import scala.util.continuations._ 
+import scala.util.continuations._
 import scala.collection.mutable.HashMap
 
 import com.typesafe.config._
@@ -28,7 +28,9 @@ import java.util.Date
 import java.util.UUID
 
 package bfactory {
-  trait StartMeUpT {
+
+
+trait StartMeUpT {
     def run(
       b : Boolean, i : Int, s : String, r : Option[StartMeUp]
     ) = {
@@ -54,16 +56,23 @@ package bfactory {
   extends Serializable {    
     import CnxnConversionStringScope._
     import com.protegra_ati.agentservices.store.extensions.StringExtensions._
+    import com.protegra_ati.agentservices.store.util.Sugar._
+
     @transient
     lazy val storageLabels =
       new CnxnString[String,String,String] with Serializable { }
+
     @transient
     lazy val eServe =
       new BFactoryCommsService
          with EvalConfig
          with BFactoryCommLinkConfiguration
          with Serializable {
-         }    
+         }
+
+    import com.protegra_ati.agentservices.protocols.verification.FilteredConnection._
+    private object BehaviorServiceConnector { def unapply[T](x: T) = x }
+
     @transient
     lazy val introductionInitiatorCnxn =
       new PortableAgentCnxn(
@@ -71,6 +80,7 @@ package bfactory {
         "initiation",
         "introductionCnxn".toURI
       )
+
     @transient
     lazy val introductionRecipientCnxn =
       new PortableAgentCnxn(
@@ -78,6 +88,7 @@ package bfactory {
         "receipt",
         "introductionCnxn".toURI
       )
+
     @transient
     lazy val introductionInitiatorLabel =
       storageLabels.fromTermString(
@@ -89,5 +100,19 @@ package bfactory {
       storageLabels.fromTermString(
         "behaviors( introduction( recipient( true ), Cnxn ) )"
       ).getOrElse( throw new Exception( "unable to parse label" ) )
-  }  
+
+    // TODO: document this
+
+    lazy val FilteredConnection(claimantConnection, claimantLabel) =
+      (new PortableAgentCnxn("agent://id", "claimant", "agent://id") /
+        "behaviors( verification( claimant( true ), Alias ) )")
+
+    lazy val FilteredConnection(verifierConnection, verifierLabel) =
+      (new PortableAgentCnxn("agent://id", "verifier", "agent://id") /
+        "behaviors( verification( verifier( true ), Alias ) )")
+
+    lazy val FilteredConnection(relyingPartyConnection, relyingPartyLabel) =
+      (new PortableAgentCnxn("agent://id", "relyingParty", "agent://id") /
+        "behaviors( verification( relyingParty( true ), Cnxn ) )")
+  }
 }
