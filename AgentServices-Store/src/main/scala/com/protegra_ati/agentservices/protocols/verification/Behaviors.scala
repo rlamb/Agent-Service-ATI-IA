@@ -4,6 +4,7 @@ import com.protegra_ati.agentservices.store.util.Sugar._
 import com.biosimilarity.evaluator.distribution.bfactory.BFactoryDefaultServiceContext._
 import com.protegra_ati.agentservices.protocols.verification.FilteredConnection._
 import com.biosimilarity.lift.lib.BasicLogService
+import com.biosimilarity.evaluator.distribution.PortableAgentCnxn
 
 sealed abstract class VerificationBehavior()
 
@@ -12,55 +13,73 @@ case class VerifierBehavior() extends VerificationBehavior() {
   def run(kvdbNode: KVDBNode, alias: Connection, c2v: Connection) {
     implicit val kvdb = kvdbNode
 
-    // Wait for AuthorizeVerifier
-    Tweet("Verifier: Waiting for AuthorizeVerifier")
-    c2v ? ({ case AuthorizeVerifier(token, claimStr, c2v, c2r) =>
-      Tweet("Verifier: Got AuthorizeVerifier")
+    // runSafe is only called on conformant connections
+    def runSafe(alias: Connection, c2v: Connection) {
 
-      // Build the claim
-      val claim = Claim(token, claimStr, c2v, c2r)
+      // Wait for AuthorizeVerifier
+      Tweet("Verifier: Waiting for AuthorizeVerifier")
+      c2v ? ({ case AuthorizeVerifier(token, claimStr, c2v, c2r) =>
+        Tweet("Verifier: Got AuthorizeVerifier")
 
-      // Get the channels
-      val v2c = claim.connection(Verifier, Claimant)
-      val v2r = claim.connection(Verifier, RelParty)
-      val r2v = claim.connection(RelParty, Verifier)
-      val r2c = claim.connection(RelParty, Claimant)
+        // Build the claim
+        val claim = Claim(token, claimStr, c2v, c2r)
 
-      // Notify the alias
-      Tweet("Verifier: Sending ClaimAuthorized")
-      alias ! ClaimAuthorized(token, claimStr, v2r)
-      Tweet("Verifier: Sent ClaimAuthorized")
+        // Get the channels
+        val v2c = claim.connection(Verifier, Claimant)
+        val v2r = claim.connection(Verifier, RelParty)
+        val r2v = claim.connection(RelParty, Verifier)
+        val r2c = claim.connection(RelParty, Claimant)
 
-      // Wait for ProduceClaim
-      Tweet("Verifier: Waiting for ProduceClaim")
-      r2v ? ({ case ProduceClaim(tokenPrime, claimStrPrime, r2cPrime, r2vPrime) =>
-        if(Claim(tokenPrime, claimStrPrime, r2cPrime, r2vPrime).isSubClaimOf(claim)) {
-          Tweet("Verifier: Got ProduceClaim")
+        // Notify the alias
+        Tweet("Verifier: Sending ClaimAuthorized")
+        alias ! ClaimAuthorized(token, claimStr, v2r)
+        Tweet("Verifier: Sent ClaimAuthorized")
 
-          // Notify the alias
-          Tweet("Verifier: Sending ClaimProduced")
-          alias ! ClaimProduced(token, claimStr, r2c)
-          Tweet("Verifier: Sent ClaimProduced")
+        // Wait for ProduceClaim
+        Tweet("Verifier: Waiting for ProduceClaim")
+        r2v ? ({ case ProduceClaim(tokenPrime, claimStrPrime, r2cPrime, r2vPrime) =>
+          if(Claim(tokenPrime, claimStrPrime, r2cPrime, r2vPrime).isSubClaimOf(claim)) {
+            Tweet("Verifier: Got ProduceClaim")
 
-          // Wait for ValidateClaim
-          Tweet("Verifier: Waiting for ValidateClaim")
-          alias ? ({ case ValidateClaim(tokenPrime, claimStrPrime, response, v2cPrime, v2rPrime) =>
-            if(Claim(tokenPrime, claimStrPrime, v2rPrime, v2cPrime).isSubClaimOf(claim)) {
-              Tweet("Verifier: Got ValidateClaim")
+            // Notify the alias
+            Tweet("Verifier: Sending ClaimProduced")
+            alias ! ClaimProduced(token, claimStr, r2c)
+            Tweet("Verifier: Sent ClaimProduced")
 
-              // Send ValidateClaim to relying party
-              Tweet("Verifier: Sending ValidateClaim")
-              v2r ! ValidateClaim(tokenPrime, claimStrPrime, response, v2cPrime, v2rPrime)
-              Tweet("Verifier: Sent ValidateClaim")
-            }
-          }: ValidateClaim => Unit)
-        }
-      }: ProduceClaim => Unit)
-    }: AuthorizeVerifier => Unit)
+            // Wait for ValidateClaim
+            Tweet("Verifier: Waiting for ValidateClaim")
+            alias ? ({ case ValidateClaim(tokenPrime, claimStrPrime, response, v2cPrime, v2rPrime) =>
+              if(Claim(tokenPrime, claimStrPrime, v2rPrime, v2cPrime).isSubClaimOf(claim)) {
+                Tweet("Verifier: Got ValidateClaim")
 
+                // Send ValidateClaim to relying party
+                Tweet("Verifier: Sending ValidateClaim")
+                v2r ! ValidateClaim(tokenPrime, claimStrPrime, response, v2cPrime, v2rPrime)
+                Tweet("Verifier: Sent ValidateClaim")
+              }
+            }: ValidateClaim => Unit)
+          }
+        }: ProduceClaim => Unit)
+      }: AuthorizeVerifier => Unit)
+    }
 
+    // Identify/report/fix errors in the alias and c2v connections
+    val safeC2V =
+      if(c2v.label != "NODE_C2V_LABEL") {
+        Tweet("Non-conformant c2v label passed to VerifierBehavior.run: %s".format(c2v.label))
+        PortableAgentCnxn(c2v.src, "NODE_C2R_LABEL", c2v.trgt)
+      } else { c2v }
+
+    val safeAlias =
+      if(alias.src != alias.trgt) {
+        throw new RuntimeException("Non-alias connection passed to VerifierBehavior.run")
+      } else if(alias.label != "alias") {
+        Tweet("Non-conformant alias label passed to VerifierBehavior.run: %s".format(alias.label))
+        PortableAgentCnxn(alias.src, "alias", alias.trgt)
+      } else { alias }
+
+    runSafe(safeAlias, safeC2V)
   }
-
 }
 
 case class RelyingPartyBehavior() extends VerificationBehavior() {
@@ -68,68 +87,87 @@ case class RelyingPartyBehavior() extends VerificationBehavior() {
   def run(kvdbNode: KVDBNode, alias: Connection, c2r: Connection) {
     implicit val kvdb = kvdbNode
 
-    // Wait for SubmitClaim
-    Tweet("RelyingParty: Waiting for SubmitClaim")
-    c2r ? ({ case SubmitClaim(token, claimStr, c2v, c2r) =>
-      Tweet("RelyingParty: Got SubmitClaim")
+    // runSafe is only called on conformant connections
+    def runSafe(alias: Connection, c2r: Connection) {
 
-      // Build the claim
-      val claim = Claim(token, claimStr, c2v, c2r)
+      // Wait for SubmitClaim
+      Tweet("RelyingParty: Waiting for SubmitClaim")
+      c2r ? ({ case SubmitClaim(token, claimStr, c2v, c2r) =>
+        Tweet("RelyingParty: Got SubmitClaim")
 
-      // Get the channels
-      val r2c = claim.connection(RelParty, Claimant)
-      var r2v = claim.connection(RelParty, Verifier)
-      val v2r = claim.connection(Verifier, RelParty)
-      val v2c = claim.connection(Verifier, Claimant)
+        // Build the claim
+        val claim = Claim(token, claimStr, c2v, c2r)
 
-      // Notify the alias.
-      Tweet("RelyingParty: Sending ClaimSubmitted")
-      alias ! ClaimSubmitted(token, claimStr, c2v)
-      Tweet("RelyingParty: Sent ClaimSubmitted")
+        // Get the channels
+        val r2c = claim.connection(RelParty, Claimant)
+        var r2v = claim.connection(RelParty, Verifier)
+        val v2r = claim.connection(Verifier, RelParty)
+        val v2c = claim.connection(Verifier, Claimant)
 
-      // Wait for ProduceClaim
-      Tweet("RelyingParty: Waiting for ProduceClaim")
-      alias ? ({ case ProduceClaim(tokenPrime, claimStrPrime, r2cPrime, r2vPrime) =>
-        if(Claim(tokenPrime, claimStrPrime, r2cPrime, r2vPrime).isSubClaimOf(claim)) {
-          Tweet("RelyingParty: Got ProduceClaim")
+        // Notify the alias.
+        Tweet("RelyingParty: Sending ClaimSubmitted")
+        alias ! ClaimSubmitted(token, claimStr, c2v)
+        Tweet("RelyingParty: Sent ClaimSubmitted")
 
-          // Send ProduceClaim to verifier
-          Tweet("RelyingParty: Sending ProduceClaim")
-          r2v ! ProduceClaim(token, claimStr, r2c, r2v)
-          Tweet("RelyingParty: Sent ProduceClaim")
+        // Wait for ProduceClaim
+        Tweet("RelyingParty: Waiting for ProduceClaim")
+        alias ? ({ case ProduceClaim(tokenPrime, claimStrPrime, r2cPrime, r2vPrime) =>
+          if(Claim(tokenPrime, claimStrPrime, r2cPrime, r2vPrime).isSubClaimOf(claim)) {
+            Tweet("RelyingParty: Got ProduceClaim")
 
-          // Wait for ValidateClaim
-          Tweet("RelyingParty: Waiting for ValidateClaim")
-          v2r ? ({ case ValidateClaim(tokenPrime, claimStrPrime, response, v2cPrime, v2rPrime) =>
-            if(Claim(tokenPrime, claimStrPrime, v2cPrime, v2rPrime).isSubClaimOf(claim)) {
-              Tweet("RelyingParty: Got ValidateClaim")
+            // Send ProduceClaim to verifier
+            Tweet("RelyingParty: Sending ProduceClaim")
+            r2v ! ProduceClaim(token, claimStr, r2c, r2v)
+            Tweet("RelyingParty: Sent ProduceClaim")
 
-              // Notify the alias
-              Tweet("RelyingParty: Sending ClaimVerified")
-              alias ! ClaimVerified(token, claimStr, response, v2c)
-              Tweet("RelyingParty: Sent ClaimVerified")
+            // Wait for ValidateClaim
+            Tweet("RelyingParty: Waiting for ValidateClaim")
+            v2r ? ({ case ValidateClaim(tokenPrime, claimStrPrime, response, v2cPrime, v2rPrime) =>
+              if(Claim(tokenPrime, claimStrPrime, v2cPrime, v2rPrime).isSubClaimOf(claim)) {
+                Tweet("RelyingParty: Got ValidateClaim")
 
-              // Wait for CompleteClaim
-              Tweet("RelyingParty: Waiting for CompleteClaim")
-              alias ? ({ case CompleteClaim(tokenPrime, claimStrPrime, r2cPrime, r2vPrime) =>
-                if(Claim(tokenPrime, claimStrPrime, v2cPrime, v2rPrime).isSubClaimOf(claim)) {
-                  Tweet("RelyingParty: Got CompleteClaim")
+                // Notify the alias
+                Tweet("RelyingParty: Sending ClaimVerified")
+                alias ! ClaimVerified(token, claimStr, response, v2c)
+                Tweet("RelyingParty: Sent ClaimVerified")
 
-                  // Send CompleteClaim to Claimant
-                  Tweet("RelyingParty Sending CompleteClaim")
-                  r2c ! CompleteClaim(token, claimStr, r2c, r2v)
-                  Tweet("RelyingParty Sent CompleteClaim")
-                }
-              }: CompleteClaim => Unit)
-            }
-          }: ValidateClaim => Unit)
-        } else Tweet("%s != %s".format(Claim(tokenPrime, claimStrPrime, r2cPrime, r2vPrime).toString, claim.toString))
-      }: ProduceClaim => Unit)
-    }: SubmitClaim => Unit)
+                // Wait for CompleteClaim
+                Tweet("RelyingParty: Waiting for CompleteClaim")
+                alias ? ({ case CompleteClaim(tokenPrime, claimStrPrime, r2cPrime, r2vPrime) =>
+                  if(Claim(tokenPrime, claimStrPrime, v2cPrime, v2rPrime).isSubClaimOf(claim)) {
+                    Tweet("RelyingParty: Got CompleteClaim")
+
+                    // Send CompleteClaim to Claimant
+                    Tweet("RelyingParty Sending CompleteClaim")
+                    r2c ! CompleteClaim(token, claimStr, r2c, r2v)
+                    Tweet("RelyingParty Sent CompleteClaim")
+                  }
+                }: CompleteClaim => Unit)
+              }
+            }: ValidateClaim => Unit)
+          } else Tweet("%s != %s".format(Claim(tokenPrime, claimStrPrime, r2cPrime, r2vPrime).toString, claim.toString))
+        }: ProduceClaim => Unit)
+      }: SubmitClaim => Unit)
+    }
 
 
+    // Identify/report/fix errors in the alias and c2r connections
+    val safeC2R =
+      if(c2r.label != "NODE_C2R_LABEL") {
+        Tweet("Non-conformant c2r label passed to RelyingPartyBehavior.run: %s".format(c2r.label))
+        PortableAgentCnxn(c2r.src, "NODE_C2R_LABEL", c2r.trgt)
+      } else { c2r }
+
+    val safeAlias =
+      if(alias.src != alias.trgt) {
+        throw new RuntimeException("Non-alias connection passed to RelyingPartyBehavior.run")
+      } else if(alias.label != "alias") {
+        Tweet("Non-conformant alias label passed to RelyingPartyBehavior.run: %s".format(alias.label))
+        PortableAgentCnxn(alias.src, "alias", alias.trgt)
+      } else { alias }
+
+    runSafe(safeAlias, safeC2R)
   }
-
 }
 
 case class ClaimantBehavior() extends VerificationBehavior() {
@@ -137,42 +175,55 @@ case class ClaimantBehavior() extends VerificationBehavior() {
   def run(kvdbNode: KVDBNode, alias: Connection) {
     implicit val kvdb = kvdbNode
 
-    // Wait for SubmitClaim
-    Tweet("Claimant: Waiting for SubmitClaim")
-    alias ? ({ case SubmitClaim(token, claimStr, c2v, c2r) =>
-      Tweet("Claimant: Got SubmitClaim")
+    def runSafe(alias: Connection) {
+      // Wait for SubmitClaim
+      Tweet("Claimant: Waiting for SubmitClaim")
+      alias ? ({ case SubmitClaim(token, claimStr, c2v, c2r) =>
+        Tweet("Claimant: Got SubmitClaim")
 
-      // Build the claim
-      val claim = Claim(token, claimStr, c2v, c2r)
+        // Build the claim
+        val claim = Claim(token, claimStr, c2v, c2r)
 
-      // Get the channels
-      val v2c = claim.connection(Verifier, Claimant)
-      val r2c = claim.connection(RelParty, Claimant)
-      val r2v = claim.connection(RelParty, Verifier)
+        // Get the channels
+        val v2c = claim.connection(Verifier, Claimant)
+        val r2c = claim.connection(RelParty, Claimant)
+        val r2v = claim.connection(RelParty, Verifier)
 
-      // Send AuthorizeVerifier to the verifier
-      Tweet("Claimant: Sending AuthorizeVerifier")
-      c2v ! AuthorizeVerifier(token, claimStr, c2v, c2r)
-      Tweet("Claimant: Sent AuthorizeVerifier")
+        // Send AuthorizeVerifier to the verifier
+        Tweet("Claimant: Sending AuthorizeVerifier")
+        c2v ! AuthorizeVerifier(token, claimStr, c2v, c2r)
+        Tweet("Claimant: Sent AuthorizeVerifier")
 
-      // Send SubmitClaim to the reliant party
-      Tweet("Claimant: Sending SubmitClaim")
-      c2r ! SubmitClaim(token, claimStr, c2v, c2r)
-      Tweet("Claimant: Sent SubmitClaim")
+        // Send SubmitClaim to the reliant party
+        Tweet("Claimant: Sending SubmitClaim")
+        c2r ! SubmitClaim(token, claimStr, c2v, c2r)
+        Tweet("Claimant: Sent SubmitClaim")
 
-      // Wait for CompleteClaim
-      Tweet("Claimant: Waiting for CompleteClaim")
-      r2c ? ({ case CompleteClaim(tokenPrime, claimStrPrime, r2cPrime, r2vPrime) =>
-        if(Claim(tokenPrime, claimStrPrime, r2cPrime, r2vPrime).isSubClaimOf(claim)){
-          Tweet("Claimant: Got CompleteClaim")
+        // Wait for CompleteClaim
+        Tweet("Claimant: Waiting for CompleteClaim")
+        r2c ? ({ case CompleteClaim(tokenPrime, claimStrPrime, r2cPrime, r2vPrime) =>
+          if(Claim(tokenPrime, claimStrPrime, r2cPrime, r2vPrime).isSubClaimOf(claim)){
+            Tweet("Claimant: Got CompleteClaim")
 
-          // Notify the alias
-          Tweet("Claimant: Sending ClaimComplete")
-          alias ! ClaimComplete(token, claimStr, r2v)
-          Tweet("Claimant: Sent ClaimComplete")
-        }
-      }: CompleteClaim => Unit)
-    }: SubmitClaim => Unit)
+            // Notify the alias
+            Tweet("Claimant: Sending ClaimComplete")
+            alias ! ClaimComplete(token, claimStr, r2v)
+            Tweet("Claimant: Sent ClaimComplete")
+          }
+        }: CompleteClaim => Unit)
+      }: SubmitClaim => Unit)
+    }
+
+    val safeAlias =
+      if(alias.src != alias.trgt) {
+        throw new RuntimeException("Non-alias connection passed to ClaimantBehavior.run")
+      } else if(alias.label != "alias") {
+        Tweet("Non-conformant alias label passed to ClaimantBehavior.run: %s".format(alias.label))
+        PortableAgentCnxn(alias.src, "alias", alias.trgt)
+      } else { alias }
+
+    runSafe(safeAlias)
+
   }
 
 }
