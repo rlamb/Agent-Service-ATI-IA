@@ -34,6 +34,10 @@ trait EvaluationService {
   type BndRsrcHM <: PersistedMonadicKVDBMongoNodeScope[String,String,String,ConcreteHL.HLExpr]#MTTypes#RBoundHM
   type BndRsrcAList <: PersistedMonadicKVDBMongoNodeScope[String,String,String,ConcreteHL.HLExpr]#MTTypes#RBoundAList
 
+  def uriHandler() : URIHandlerT = {
+    throw new Exception( "not implemented" )
+  }
+
   def post[Value](
     filter : CnxnCtxtLabel[String,String,String],
     cnxns : Seq[Cnxn],

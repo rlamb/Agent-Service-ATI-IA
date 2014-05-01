@@ -75,7 +75,7 @@ trait LabelToPathT {
 
 trait QryToURIT extends LabelToPathT {
   self : CnxnString[String, String, String] =>
-  def queryToURIStrs( cnxn : URICnxn )(
+  def queryToURIStrs( cnxn : com.biosimilarity.lift.model.store.Cnxn[URI,String,URI] )(
     filter : CnxnCtxtLabel[String,String,String]
   ) : List[String] = {
     labelToPaths( filter ).map(
@@ -87,10 +87,89 @@ trait QryToURIT extends LabelToPathT {
         )
       }
     )
-  }
-  def queryToURIs( cnxn : URICnxn )(
+  }  
+  def queryToURIs( cnxn : com.biosimilarity.lift.model.store.Cnxn[URI,String,URI] )(
     filter : CnxnCtxtLabel[String,String,String]
   ) : List[URI] = {
     queryToURIStrs( cnxn )( filter ).map( new URI( _ ) )
   }
+}
+
+trait URIHandlerT {
+  self : /*EvaluationCommsService with*/ QryToURIT =>
+  import DSLCommLink.mTT
+  import ConcreteHL._    
+
+  type Rsrc = mTT.Resource
+
+  // BUGBUG : lgm -- none of the write methods are implemented and
+  // most of the read methods are all the same
+
+  def post[Value](
+    filter : CnxnCtxtLabel[String,String,String],
+    cnxns : Seq[URICnxn],
+    content : Value,
+    onPost : Option[Rsrc] => Unit =
+      ( optRsrc : Option[Rsrc] ) => { BasicLogService.tweet( "got response: " + optRsrc ) }
+  ) : Unit
+
+  def postV[Value](
+    filter : CnxnCtxtLabel[String,String,String],
+    cnxns : Seq[URICnxn],
+    content : Value,
+    onPost : Option[Rsrc] => Unit =
+      ( optRsrc : Option[Rsrc] ) => { BasicLogService.tweet( "got response: " + optRsrc ) }
+  ) : Unit
+
+  def put[Value](
+    filter : CnxnCtxtLabel[String,String,String],
+    cnxns : Seq[URICnxn],
+    content : Value,
+    onPut : Option[Rsrc] => Unit =
+      ( optRsrc : Option[Rsrc] ) => { BasicLogService.tweet( "got response: " + optRsrc ) }
+  ) : Unit
+
+  def read(
+    filter : CnxnCtxtLabel[String,String,String],
+    cnxns : Seq[URICnxn],
+    onReadRslt : Option[Rsrc] => Unit =
+      ( optRsrc : Option[Rsrc] ) => { BasicLogService.tweet( "got response: " + optRsrc ) },
+    sequenceSubscription : Boolean = false
+  ) : Unit
+
+  def fetch(
+    filter : CnxnCtxtLabel[String,String,String],
+    cnxns : Seq[URICnxn],
+    onFetchRslt : Option[Rsrc] => Unit =
+      ( optRsrc : Option[Rsrc] ) => { BasicLogService.tweet( "got response: " + optRsrc ) }
+  ) : Unit
+
+  def feed(
+    filter : CnxnCtxtLabel[String,String,String],
+    cnxns : Seq[URICnxn],
+    onFeedRslt : Option[Rsrc] => Unit =
+      ( optRsrc : Option[Rsrc] ) => { BasicLogService.tweet( "got response: " + optRsrc ) }
+  ) : Unit
+
+  def get(
+    filter : CnxnCtxtLabel[String,String,String],
+    cnxns : Seq[URICnxn],
+    onGetRslt : Option[Rsrc] => Unit =
+      ( optRsrc : Option[Rsrc] ) => { BasicLogService.tweet( "got response: " + optRsrc ) }
+  ) : Unit
+
+  def score(
+    filter : CnxnCtxtLabel[String,String,String],
+    cnxns : Seq[URICnxn],
+    staff : Either[Seq[Cnxn],Seq[Label]],
+    onScoreRslt : Option[Rsrc] => Unit =
+      ( optRsrc : Option[Rsrc] ) => { BasicLogService.tweet( "got response: " + optRsrc ) }
+  ) : Unit
+
+  def cancel(
+    filter : CnxnCtxtLabel[String,String,String],
+    connections : Seq[URICnxn],
+    onCancel : Option[Rsrc] => Unit =
+      ( optRsrc : Option[Rsrc] ) => { BasicLogService.tweet( "onCancel: optRsrc = " + optRsrc ) }
+  ) : Unit
 }

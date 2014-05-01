@@ -29,6 +29,7 @@ object ConcreteHL
   type Label = CnxnCtxtLabel[String,String,String]  
   type Substitution = Option[List[(String,Label)]]  
 
-  type Cnxn = PortableAgentCnxn
+  //type Cnxn = PortableAgentCnxn
+  type Cnxn = com.biosimilarity.lift.model.store.Cnxn[URI,String,URI]
   type BiCnxn = PortableAgentBiCnxn
 }

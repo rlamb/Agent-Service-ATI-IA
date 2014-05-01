@@ -2771,65 +2771,74 @@ package diesel {
           ) : Unit = {
             for ( n <- EvalNodeMapper.get( node ) ) {
               for( cnxn <- cnxns ) {
-                val agntCnxn : acT.AgentCnxn =
-                  new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
-                reset {
-                  
-                  BasicLogService.tweet(
-                    "method: post"
-                    + "\n calling node.publish "
-                    + "\nthis: " + this
-                    + "\nnode: " + node
-//                    + "\nexpr: " + expr
-//                    + "\nhandler: " + handler
-                    + "\n-----------------------------------------"
-                    + "\nagntCnxn: " + agntCnxn
-                    + "\nfilter: " + filter
-                    + "\ncontent: " + content
-                  )
-                  
-                  try {
-                    n.publish( agntCnxn )( filter, mTT.Ground( ConcreteHL.PostedExpr( content ) ) )
-                  } 
-                  catch {
-                    case e : Exception => {
+                cnxn match {
+                  case pac : PortableAgentCnxn => {
+                    val agntCnxn : acT.AgentCnxn =
+                      new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
+                    reset {
+                      
                       BasicLogService.tweet(
                         "method: post"
-                        + "\n ---> node.publish caused an exception <--- "
+                        + "\n calling node.publish "
                         + "\nthis: " + this
                         + "\nnode: " + node
-//                        + "\nexpr: " + expr
-//                        + "\nhandler: " + handler
+                        //                    + "\nexpr: " + expr
+                        //                    + "\nhandler: " + handler
                         + "\n-----------------------------------------"
                         + "\nagntCnxn: " + agntCnxn
                         + "\nfilter: " + filter
                         + "\ncontent: " + content
                       )
-                      BasicLogService.tweetTrace( e )
+                      
+                      try {
+                        n.publish( agntCnxn )( filter, mTT.Ground( ConcreteHL.PostedExpr( content ) ) )
+                      } 
+                      catch {
+                        case e : Exception => {
+                          BasicLogService.tweet(
+                            "method: post"
+                            + "\n ---> node.publish caused an exception <--- "
+                            + "\nthis: " + this
+                            + "\nnode: " + node
+                            //                        + "\nexpr: " + expr
+                            //                        + "\nhandler: " + handler
+                            + "\n-----------------------------------------"
+                            + "\nagntCnxn: " + agntCnxn
+                            + "\nfilter: " + filter
+                            + "\ncontent: " + content
+                          )
+                          BasicLogService.tweetTrace( e )
+                        }
+                      }
                     }
-                  }
-                }
-
-                BasicLogService.tweet(
-                  "method: post"
-                  + "\n completed node.publish "
-                  + "\nthis: " + this
-                  + "\nnode: " + node
-//                  + "\nexpr: " + expr
-//                  + "\nhandler: " + handler
-                  + "\n-----------------------------------------"
-                  + "\nagntCnxn: " + agntCnxn
-                  + "\nfilter: " + filter
-                  + "\ncontent: " + content
-                )
-                
-                onPost(
-                  Some(
-                    tplToRsrc(
-                      ( Some( mTT.Ground( ConcreteHL.Bottom ) ), Some( filter ), Some( agntCnxn ) )
+                    
+                    BasicLogService.tweet(
+                      "method: post"
+                      + "\n completed node.publish "
+                      + "\nthis: " + this
+                      + "\nnode: " + node
+                      //                  + "\nexpr: " + expr
+                      //                  + "\nhandler: " + handler
+                      + "\n-----------------------------------------"
+                      + "\nagntCnxn: " + agntCnxn
+                      + "\nfilter: " + filter
+                      + "\ncontent: " + content
                     )
-                  )
-                )
+                    
+                    onPost(
+                      Some(
+                        tplToRsrc(
+                          ( Some( mTT.Ground( ConcreteHL.Bottom ) ), Some( filter ), Some( agntCnxn ) )
+                        )
+                      )
+                    )
+                  }
+                  case uric : URICnxn => {
+                    uriHandler().post[Value](
+                      filter, List( uric ), content, onPost.asInstanceOf[Option[com.biosimilarity.evaluator.distribution.DSLCommLink.mTT.Resource] => Unit]
+                    )
+                  }
+                }                
               }
             }
           }
@@ -2842,65 +2851,74 @@ package diesel {
           ) : Unit = {
             for ( n <- EvalNodeMapper.get( node ) ) {
               for( cnxn <- cnxns ) {
-                val agntCnxn : acT.AgentCnxn =
-                  new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
-                reset {
-                  
-                  BasicLogService.tweet(
-                    "method: post"
-                    + "\n calling node.publish "
-                    + "\nthis: " + this
-                    + "\nnode: " + node
-//                    + "\nexpr: " + expr
-//                    + "\nhandler: " + handler
-                    + "\n-----------------------------------------"
-                    + "\nagntCnxn: " + agntCnxn
-                    + "\nfilter: " + filter
-                    + "\ncontent: " + content
-                  )
-                  
-                  try {
-                    n.publish( agntCnxn )( filter, mTT.Ground( ConcreteHL.PostedExpr( content ) ) )
-                  } 
-                  catch {
-                    case e : Exception => {
+                cnxn match {
+                  case pac : PortableAgentCnxn => {
+                    val agntCnxn : acT.AgentCnxn =
+                      new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
+                    reset {
+                      
                       BasicLogService.tweet(
                         "method: post"
-                        + "\n ---> node.publish caused an exception <--- "
+                        + "\n calling node.publish "
                         + "\nthis: " + this
                         + "\nnode: " + node
-//                        + "\nexpr: " + expr
-//                        + "\nhandler: " + handler
+                        //                    + "\nexpr: " + expr
+                        //                    + "\nhandler: " + handler
                         + "\n-----------------------------------------"
                         + "\nagntCnxn: " + agntCnxn
                         + "\nfilter: " + filter
                         + "\ncontent: " + content
                       )
-                      BasicLogService.tweetTrace( e )
+                      
+                      try {
+                        n.publish( agntCnxn )( filter, mTT.Ground( ConcreteHL.PostedExpr( content ) ) )
+                      } 
+                      catch {
+                        case e : Exception => {
+                          BasicLogService.tweet(
+                            "method: post"
+                            + "\n ---> node.publish caused an exception <--- "
+                            + "\nthis: " + this
+                            + "\nnode: " + node
+                            //                        + "\nexpr: " + expr
+                            //                        + "\nhandler: " + handler
+                            + "\n-----------------------------------------"
+                            + "\nagntCnxn: " + agntCnxn
+                            + "\nfilter: " + filter
+                            + "\ncontent: " + content
+                          )
+                          BasicLogService.tweetTrace( e )
+                        }
+                      }
                     }
-                  }
-                }
-
-                BasicLogService.tweet(
-                  "method: post"
-                  + "\n completed node.publish "
-                  + "\nthis: " + this
-                  + "\nnode: " + node
-//                  + "\nexpr: " + expr
-//                  + "\nhandler: " + handler
-                  + "\n-----------------------------------------"
-                  + "\nagntCnxn: " + agntCnxn
-                  + "\nfilter: " + filter
-                  + "\ncontent: " + content
-                )
-                
-                onPost(
-                  Some(
-                    tplToRsrc(
-                      ( Some( mTT.Ground( ConcreteHL.Bottom ) ), Some( filter ), Some( agntCnxn ) )
+                    
+                    BasicLogService.tweet(
+                      "method: post"
+                      + "\n completed node.publish "
+                      + "\nthis: " + this
+                      + "\nnode: " + node
+                      //                  + "\nexpr: " + expr
+                      //                  + "\nhandler: " + handler
+                      + "\n-----------------------------------------"
+                      + "\nagntCnxn: " + agntCnxn
+                      + "\nfilter: " + filter
+                      + "\ncontent: " + content
                     )
-                  )
-                )
+                    
+                    onPost(
+                      Some(
+                        tplToRsrc(
+                          ( Some( mTT.Ground( ConcreteHL.Bottom ) ), Some( filter ), Some( agntCnxn ) )
+                        )
+                      )
+                    )
+                  }
+                  case uric : URICnxn => {
+                    uriHandler().postV[Value](
+                      filter, List( uric ), content, onPost.asInstanceOf[Option[com.biosimilarity.evaluator.distribution.DSLCommLink.mTT.Resource] => Unit]
+                    )
+                  }
+                }                
               }
             }
           }
@@ -2913,33 +2931,42 @@ package diesel {
           ) : Unit = {
             for ( n <- EvalNodeMapper.get( node ) ) {
               for( cnxn <- cnxns ) {
-                val agntCnxn : acT.AgentCnxn =
-                  new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
-                reset {
-                  
-                  BasicLogService.tweet(
-                    "method: put"
-                    + "\n calling node.put "
-                    + "\nthis: " + this
-                    + "\nnode: " + node
-//                    + "\nexpr: " + expr
-//                    + "\nhandler: " + handler
-                    + "\n-----------------------------------------"
-                    + "\nagntCnxn: " + agntCnxn
-                    + "\nfilter: " + filter
-                    + "\ncontent: " + content
-                  )
-                  
-                  n.put( agntCnxn )( filter, mTT.Ground( ConcreteHL.PostedExpr( content ) ) )
-                }
-                
-                onPut(
-                  Some(
-                    tplToRsrc(
-                      ( Some( mTT.Ground( ConcreteHL.Bottom ) ), Some( filter ), Some( agntCnxn ) )
+                cnxn match {
+                  case pac : PortableAgentCnxn => {
+                    val agntCnxn : acT.AgentCnxn =
+                      new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
+                    reset {
+                      
+                      BasicLogService.tweet(
+                        "method: put"
+                        + "\n calling node.put "
+                        + "\nthis: " + this
+                        + "\nnode: " + node
+                        //                    + "\nexpr: " + expr
+                        //                    + "\nhandler: " + handler
+                        + "\n-----------------------------------------"
+                        + "\nagntCnxn: " + agntCnxn
+                        + "\nfilter: " + filter
+                        + "\ncontent: " + content
+                      )
+                      
+                      n.put( agntCnxn )( filter, mTT.Ground( ConcreteHL.PostedExpr( content ) ) )
+                    }
+                    
+                    onPut(
+                      Some(
+                        tplToRsrc(
+                          ( Some( mTT.Ground( ConcreteHL.Bottom ) ), Some( filter ), Some( agntCnxn ) )
+                        )
+                      )
                     )
-                  )
-                )
+                  }
+                  case uric : URICnxn => {
+                    uriHandler().put[Value](
+                      filter, List( uric ), content, onPut.asInstanceOf[Option[com.biosimilarity.evaluator.distribution.DSLCommLink.mTT.Resource] => Unit]
+                    )
+                  }
+                }                
               }
             }
           }
@@ -2952,42 +2979,51 @@ package diesel {
           ) : Unit = {
             for ( n <- EvalNodeMapper.get( node ) ) {
               for( cnxn <- cnxns ) {
-                val agntCnxn : acT.AgentCnxn =
-                  new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
-                reset {
-                  
-                  BasicLogService.tweet(
-                    "method: read"
-                    + "\n calling node.read "
-                    + "\nthis: " + this
-                    + "\nnode: " + node
-//                    + "\nexpr: " + expr
-//                    + "\nhandler: " + handler
-                    + "\n-----------------------------------------"
-                    + "\nagntCnxn: " + agntCnxn
-                    + "\nfilter: " + filter
-                  )
-                  
-                  for( e <- n.read( agntCnxn )( filter ) ) {
-                    
-                    BasicLogService.tweet(
-                      "method: read"
-                      + "\n returned from node.read "
-                      + "\nthis: " + this
-                      + "\nnode: " + node
-//                      + "\nexpr: " + expr
-//                      + "\nhandler: " + handler
-                      + "\n-----------------------------------------"
-                      + "\nagntCnxn: " + agntCnxn
-                      + "\nfilter: " + filter
-                      + "\ne: " + e
-                    )
+                cnxn match {
+                  case pac : PortableAgentCnxn => {
+                    val agntCnxn : acT.AgentCnxn =
+                      new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
+                    reset {
                       
-                    onReadRslt(
-                      Some( tplToRsrc( ( e, Some( filter ), Some( agntCnxn ) ) ) )
+                      BasicLogService.tweet(
+                        "method: read"
+                        + "\n calling node.read "
+                        + "\nthis: " + this
+                        + "\nnode: " + node
+                        //                    + "\nexpr: " + expr
+                        //                    + "\nhandler: " + handler
+                        + "\n-----------------------------------------"
+                        + "\nagntCnxn: " + agntCnxn
+                        + "\nfilter: " + filter
+                      )
+                      
+                      for( e <- n.read( agntCnxn )( filter ) ) {
+                        
+                        BasicLogService.tweet(
+                          "method: read"
+                          + "\n returned from node.read "
+                          + "\nthis: " + this
+                          + "\nnode: " + node
+                          //                      + "\nexpr: " + expr
+                          //                      + "\nhandler: " + handler
+                          + "\n-----------------------------------------"
+                          + "\nagntCnxn: " + agntCnxn
+                          + "\nfilter: " + filter
+                          + "\ne: " + e
+                        )
+                        
+                        onReadRslt(
+                          Some( tplToRsrc( ( e, Some( filter ), Some( agntCnxn ) ) ) )
+                        )
+                      }
+                    }
+                  }
+                  case uric : URICnxn => {
+                    uriHandler().read(
+                      filter, List( uric ), onReadRslt.asInstanceOf[Option[com.biosimilarity.evaluator.distribution.DSLCommLink.mTT.Resource] => Unit]
                     )
                   }
-                }
+                }                
               }
             }
           }
@@ -2999,40 +3035,49 @@ package diesel {
           ) : Unit = {
             for ( n <- EvalNodeMapper.get( node ) ) {
               for( cnxn <- cnxns ) {
-                val agntCnxn : acT.AgentCnxn =
-                  new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
-                reset {
-                  
-                  BasicLogService.tweet(
-                    "method: fetch"
-                    + "\n calling node.fetch "
-                    + "\nthis: " + this
-                    + "\nnode: " + node
-//                    + "\nexpr: " + expr
-//                    + "\nhandler: " + handler
-                    + "\n-----------------------------------------"
-                    + "\nagntCnxn: " + agntCnxn
-                    + "\nfilter: " + filter
-                  )
-                  
-                  for( e <- n.fetch( agntCnxn )( filter ) ) {
-                    
-                    BasicLogService.tweet(
-                      "method: evaluateExpression"
-                      + "\n returned from node.fetch "
-                      + "\nthis: " + this
-                      + "\nnode: " + node
-                      + "\n-----------------------------------------"
-                      + "\nagntCnxn: " + agntCnxn
-                      + "\nfilter: " + filter
-                      + "\ne: " + e
-                    )
-                    
-                    onFetchRslt(
-                      Some( tplToRsrc( ( e, Some( filter ), Some( agntCnxn ) ) ) )
+                cnxn match {
+                  case pac : PortableAgentCnxn => {
+                    val agntCnxn : acT.AgentCnxn =
+                      new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
+                    reset {
+                      
+                      BasicLogService.tweet(
+                        "method: fetch"
+                        + "\n calling node.fetch "
+                        + "\nthis: " + this
+                        + "\nnode: " + node
+                        //                    + "\nexpr: " + expr
+                        //                    + "\nhandler: " + handler
+                        + "\n-----------------------------------------"
+                        + "\nagntCnxn: " + agntCnxn
+                        + "\nfilter: " + filter
+                      )
+                      
+                      for( e <- n.fetch( agntCnxn )( filter ) ) {
+                        
+                        BasicLogService.tweet(
+                          "method: evaluateExpression"
+                          + "\n returned from node.fetch "
+                          + "\nthis: " + this
+                          + "\nnode: " + node
+                          + "\n-----------------------------------------"
+                          + "\nagntCnxn: " + agntCnxn
+                          + "\nfilter: " + filter
+                          + "\ne: " + e
+                        )
+                        
+                        onFetchRslt(
+                          Some( tplToRsrc( ( e, Some( filter ), Some( agntCnxn ) ) ) )
+                        )
+                      }
+                    }
+                  }
+                  case uric : URICnxn => {
+                    uriHandler().read(
+                      filter, List( uric ), onFetchRslt.asInstanceOf[Option[com.biosimilarity.evaluator.distribution.DSLCommLink.mTT.Resource] => Unit]
                     )
                   }
-                }
+                }                
               }
             }
           }
@@ -3044,38 +3089,47 @@ package diesel {
           ) : Unit = {
             for ( n <- EvalNodeMapper.get( node ) ) {
               for( cnxn <- cnxns ) {
-                val agntCnxn : acT.AgentCnxn =
-                  new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
-                reset {
-                  
-                  BasicLogService.tweet(
-                    "method: feed"
-                    + "\n calling node.subscribe "
-                    + "\nthis: " + this
-                    + "\nnode: " + node
-                    + "\n-----------------------------------------"
-                    + "\nagntCnxn: " + agntCnxn
-                    + "\nfilter: " + filter
-                  )
-                  
-                  for( e <- n.subscribe( agntCnxn )( filter ) ) {
-                    
-                    BasicLogService.tweet(
-                      "method: feed"
-                      + "\n returned from node.subscribe "
-                      + "\nthis: " + this
-                      + "\nnode: " + node
-                      + "\n-----------------------------------------"
-                      + "\nagntCnxn: " + agntCnxn
-                      + "\nfilter: " + filter
-                      + "\ne: " + e
-                    )
-                    
-                    onFeedRslt(
-                      Some( tplToRsrc( ( e, Some( filter ), Some( agntCnxn ) ) ) )
+                cnxn match {
+                  case pac : PortableAgentCnxn => {
+                    val agntCnxn : acT.AgentCnxn =
+                      new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
+                    reset {
+                      
+                      BasicLogService.tweet(
+                        "method: feed"
+                        + "\n calling node.subscribe "
+                        + "\nthis: " + this
+                        + "\nnode: " + node
+                        + "\n-----------------------------------------"
+                        + "\nagntCnxn: " + agntCnxn
+                        + "\nfilter: " + filter
+                      )
+                      
+                      for( e <- n.subscribe( agntCnxn )( filter ) ) {
+                        
+                        BasicLogService.tweet(
+                          "method: feed"
+                          + "\n returned from node.subscribe "
+                          + "\nthis: " + this
+                          + "\nnode: " + node
+                          + "\n-----------------------------------------"
+                          + "\nagntCnxn: " + agntCnxn
+                          + "\nfilter: " + filter
+                          + "\ne: " + e
+                        )
+                        
+                        onFeedRslt(
+                          Some( tplToRsrc( ( e, Some( filter ), Some( agntCnxn ) ) ) )
+                        )
+                      }
+                    }
+                  }
+                  case uric : URICnxn => {
+                    uriHandler().feed(
+                      filter, List( uric ), onFeedRslt.asInstanceOf[Option[com.biosimilarity.evaluator.distribution.DSLCommLink.mTT.Resource] => Unit]
                     )
                   }
-                }
+                }                
               }
             }
           }
@@ -3087,35 +3141,44 @@ package diesel {
           ) : Unit = {
             for ( n <- EvalNodeMapper.get( node ) ) {
               for( cnxn <- cnxns ) {
-                val agntCnxn : acT.AgentCnxn =
-                  new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
-                reset {
-                  
-                  BasicLogService.tweet(
-                    "method: get"
-                    + "\n calling node.get "
-                    + "\nthis: " + this
-                    + "\nnode: " + node
-                    + "\n-----------------------------------------"
-                    + "\nagntCnxn: " + agntCnxn
-                    + "\nfilter: " + filter
-                  )
-                  
-                  for( e <- n.get( agntCnxn )( filter ) ) {
-                    
-                    BasicLogService.tweet(
-                      "method: get"
-                      + "\n returned from node.get "
-                      + "\nthis: " + this
-                      + "\nnode: " + node
-                      + "\n-----------------------------------------"
-                      + "\nagntCnxn: " + agntCnxn
-                      + "\nfilter: " + filter
-                      + "\ne: " + e
-                    )
-                    
-                    onGetRslt(
-                      Some( tplToRsrc( ( e, Some( filter ), Some( agntCnxn ) ) ) )
+                cnxn match {
+                  case pac : PortableAgentCnxn => {
+                    val agntCnxn : acT.AgentCnxn =
+                      new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
+                    reset {
+                      
+                      BasicLogService.tweet(
+                        "method: get"
+                        + "\n calling node.get "
+                        + "\nthis: " + this
+                        + "\nnode: " + node
+                        + "\n-----------------------------------------"
+                        + "\nagntCnxn: " + agntCnxn
+                        + "\nfilter: " + filter
+                      )
+                      
+                      for( e <- n.get( agntCnxn )( filter ) ) {
+                        
+                        BasicLogService.tweet(
+                          "method: get"
+                          + "\n returned from node.get "
+                          + "\nthis: " + this
+                          + "\nnode: " + node
+                          + "\n-----------------------------------------"
+                          + "\nagntCnxn: " + agntCnxn
+                          + "\nfilter: " + filter
+                          + "\ne: " + e
+                        )
+                        
+                        onGetRslt(
+                          Some( tplToRsrc( ( e, Some( filter ), Some( agntCnxn ) ) ) )
+                        )
+                      }
+                    }
+                  }
+                  case uric : URICnxn => {
+                    uriHandler().get(
+                      filter, List( uric ), onGetRslt.asInstanceOf[Option[com.biosimilarity.evaluator.distribution.DSLCommLink.mTT.Resource] => Unit]
                     )
                   }
                 }
@@ -3131,34 +3194,43 @@ package diesel {
           ) : Unit = {
             for ( n <- EvalNodeMapper.get( node ) ) {
               for( cnxn <- cnxns ) {
-                val agntCnxn : acT.AgentCnxn =
+                cnxn match {
+                  case pac : PortableAgentCnxn => {
+                    val agntCnxn : acT.AgentCnxn =
                   new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
-                reset {
-                  BasicLogService.tweet(
-                    "method: score"
-                    + "\n calling node.subscribe "
-                    + "\nthis: " + this
-                    + "\nnode: " + node
-                    + "\n-----------------------------------------"
-                    + "\nagntCnxn: " + agntCnxn
-                    + "\nfilter: " + filter
-                  )
-                  
-                  for( e <- n.subscribe( agntCnxn )( filter ) ) {
-                    
-                    BasicLogService.tweet(
-                      "method: score"
-                      + "\n returned from node.subscribe "
-                      + "\nthis: " + this
-                      + "\nnode: " + node
-                      + "\n-----------------------------------------"
-                      + "\nagntCnxn: " + agntCnxn
-                      + "\nfilter: " + filter
-                      + "\ne: " + e
-                    )
-                    
-                    onScoreRslt(
-                      Some( tplToRsrc( ( e, Some( filter ), Some( agntCnxn ) ) ) )
+                    reset {
+                      BasicLogService.tweet(
+                        "method: score"
+                        + "\n calling node.subscribe "
+                        + "\nthis: " + this
+                        + "\nnode: " + node
+                        + "\n-----------------------------------------"
+                        + "\nagntCnxn: " + agntCnxn
+                        + "\nfilter: " + filter
+                      )
+                      
+                      for( e <- n.subscribe( agntCnxn )( filter ) ) {
+                        
+                        BasicLogService.tweet(
+                          "method: score"
+                          + "\n returned from node.subscribe "
+                          + "\nthis: " + this
+                          + "\nnode: " + node
+                          + "\n-----------------------------------------"
+                          + "\nagntCnxn: " + agntCnxn
+                          + "\nfilter: " + filter
+                          + "\ne: " + e
+                        )
+                        
+                        onScoreRslt(
+                          Some( tplToRsrc( ( e, Some( filter ), Some( agntCnxn ) ) ) )
+                        )
+                      }
+                    }
+                  }
+                  case uric : URICnxn => {
+                    uriHandler().score(
+                      filter, List( uric ), staff, onScoreRslt.asInstanceOf[Option[com.biosimilarity.evaluator.distribution.DSLCommLink.mTT.Resource] => Unit]
                     )
                   }
                 }
@@ -3173,38 +3245,47 @@ package diesel {
           ) : Unit = {
             for ( n <- EvalNodeMapper.get( node ) ) {
               for( cnxn <- cnxns ) {
-                val agntCnxn : acT.AgentCnxn =
-                  new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
-                BasicLogService.tweet(
-                  "method: evaluateExpression"
-                  + "\n calling node.pullCnxnKRecords "
-                  + "\nthis: " + this
-                  + "\nnode: " + node
-                  + "\n-----------------------------------------"
-                  + "\nagntCnxn: " + agntCnxn
-                  + "\nfilter: " + filter
-                )
-
-                for( e <- n.pullCnxnKRecords( agntCnxn )( filter ) ) {
-
-                  BasicLogService.tweet(
-                    "method: evaluateExpression"
-                    + "\n returned from node.pullCnxnKRecords "
-                    + "\nthis: " + this
-                    + "\nnode: " + node
-                    + "\n-----------------------------------------"
-                    + "\nagntCnxn: " + agntCnxn
-                    + "\nfilter: " + filter
-                    + "\ne: " + e
-                  )
-                  val optRsrc: Option[mTT.Resource] = e.stuff match {
-                    case Left(r) => Some(r)
-                    case _ => None
+                cnxn match {
+                  case pac : PortableAgentCnxn => {
+                    val agntCnxn : acT.AgentCnxn =
+                      new acT.AgentCnxn( cnxn.src, cnxn.label.toString, cnxn.trgt )
+                    BasicLogService.tweet(
+                      "method: evaluateExpression"
+                      + "\n calling node.pullCnxnKRecords "
+                      + "\nthis: " + this
+                      + "\nnode: " + node
+                      + "\n-----------------------------------------"
+                      + "\nagntCnxn: " + agntCnxn
+                      + "\nfilter: " + filter
+                    )
+                    
+                    for( e <- n.pullCnxnKRecords( agntCnxn )( filter ) ) {
+                      
+                      BasicLogService.tweet(
+                        "method: evaluateExpression"
+                        + "\n returned from node.pullCnxnKRecords "
+                        + "\nthis: " + this
+                        + "\nnode: " + node
+                        + "\n-----------------------------------------"
+                        + "\nagntCnxn: " + agntCnxn
+                        + "\nfilter: " + filter
+                        + "\ne: " + e
+                      )
+                      val optRsrc: Option[mTT.Resource] = e.stuff match {
+                        case Left(r) => Some(r)
+                        case _ => None
+                      }
+                      onCancel(
+                        Some( tplToRsrc( ( optRsrc, Some( filter ), Some( agntCnxn ) ) ) )
+                      )
+                    }
                   }
-                  onCancel(
-                    Some( tplToRsrc( ( optRsrc, Some( filter ), Some( agntCnxn ) ) ) )
-                  )
-                }
+                  case uric : URICnxn => {
+                    uriHandler().cancel(
+                      filter, List( uric ), onCancel.asInstanceOf[Option[com.biosimilarity.evaluator.distribution.DSLCommLink.mTT.Resource] => Unit]
+                    )
+                  }
+                }                
               }
             }
           }
