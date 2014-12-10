@@ -141,6 +141,115 @@ trait ContentRecipientBehaviorT extends ProtocolBehaviorT with Serializable {
                           HashedConnections.toLabel( sidPC ), 
                           hashedConnectionsData
                         )
+
+                        val intersectionConnections : Seq[PortableAgentCnxn] = hashedConnections intersect seqOfCnxnsPC;
+                        val intersectionConnectionsData = IntersectionResult( sidPC, cidPC, intersectionConnections);
+                        for( eIntersectionResult <- node.subscribe( agntCnxn )( IntersectionResult.toLabel ) ) {
+                          rsrc2V[ReputationMessage]( eIntersectionResult ) match
+                          {
+                            case Left( IntersectionResult( sidPC, cidPC, intersectCnxnsPC ) ) => {
+                              BasicLogService.tweet(
+                                (
+                                  "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+                                  + "\ncontentRecipient -- received IntersectionResult request: " + eIntersectionResult
+                                  + "\ncnxn: " + agntCnxn
+                                  + "\nlabel: " + IntersectionResult.toLabel
+                                  + "\n||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+                                )
+                              )
+                              println(
+                                (
+                                  "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+                                  + "\ncontentRecipient -- received IntersectionResult request: " + eIntersectionResult
+                                  + "\ncnxn: " + agntCnxn
+                                  + "\nlabel: " + IntersectionResult.toLabel
+                                  + "\n||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+                                )
+                              )
+                              if ( intersectionConnections != intersectCnxnsPC ) {
+                                BasicLogService.tweet(
+                                  (
+                                    "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+                                    + "\ncontentRecipient -- received IntersectionResult request: " + eIntersectionResult
+                                    + "\ncnxn: " + agntCnxn
+                                    + "\nlabel: " + IntersectionResult.toLabel
+                                    + "\nInvalid connection intersection"
+                                    + "\n||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+                                  )
+                                )
+                                println(
+                                  (
+                                    "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+                                    + "\ncontentRecipient -- received IntersectionResult request: " + eIntersectionResult
+                                    + "\ncnxn: " + agntCnxn
+                                    + "\nlabel: " + IntersectionResult.toLabel
+                                    + "\nInvalid connection intersection"
+                                    + "\n||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+                                  )
+                                )
+                              }
+                              node.publish( agntP2CPC )( 
+                                IntersectionResult.toLabel( sidPC ), 
+                                intersectionConnectionsData
+                              )
+                              val reoScore : Int = 1000; // placeholder for actual calculation
+                              if ( reoScore != reoPC ) {
+                                BasicLogService.tweet(
+                                  (
+                                    "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+                                    + "\nInvalid reo!!"
+                                    + "\n||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+                                  )
+                                )
+                                println(
+                                  (
+                                    "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+                                    + "\nInvalid reo!!"
+                                    + "\n||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+                                  )
+                                )
+                              }
+                              // reo is good, continue to publish
+                            }
+                            case Right( true ) => {
+                              BasicLogService.tweet(
+                                (
+                                  "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+                                  + "\ncontentRecipient -- still waiting for IntersectionResult request"
+                                  + "\n||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+                                )
+                              )
+                              println(
+                                (
+                                  "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+                                  + "\ncontentRecipient -- still waiting for IntersectionResult request"
+                                  + "\n||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+                                )
+                              )
+                            }
+                            case _ => {
+                              // BUGBUG : lgm -- protect against strange and
+                              // wondrous toString implementations (i.e. injection
+                              // attack ) for eInitiateClaim
+                              BasicLogService.tweet(
+                                (
+                                  "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+                                  + "\ncontentRecipient -- while waiting for IntersectionResult request"
+                                  + "\nreceived unexpected protocol message : " + eIntersectionResult
+                                  + "\n||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+                                )
+                              )
+                              println(
+                                (
+                                  "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+                                  + "\ncontentRecipient -- while waiting for IntersectionResult request"
+                                  + "\nreceived unexpected protocol message : " + eIntersectionResult
+                                  + "\n||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+                                )
+                              )
+                            }
+                          }
+                        }
                       }
                       case Right( true ) => {
                         BasicLogService.tweet(
